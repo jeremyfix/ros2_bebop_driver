@@ -1,0 +1,7 @@
+<launch>
+	<arg name="namespace" default="bebop"/>
+	<arg name="ip" default="192.168.42.1"/>
+	<node pkg="ros2_bebop_driver" exec="bebop_driver" name="bebop_driver" output="screen" namespace="$(var namespace)">
+		<param name="bebop_ip" value="$(var ip)"/>
+	</node>
+</launch>
