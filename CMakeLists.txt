@@ -19,9 +19,10 @@ endif()
 find_package(ament_cmake REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
-# find_package(<dependency> REQUIRED)
+find_package(ros2_parrot_arsdk REQUIRED)
 
-add_executable(bebop_driver src/bebop_driver_node.cpp)
+add_executable(bebop_driver src/bebop_driver_node.cpp src/bebop.cpp)
+ament_target_dependencies(bebop_driver ros2_parrot_arsdk)
 target_include_directories(bebop_driver PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
