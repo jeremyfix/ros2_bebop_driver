@@ -1,6 +1,8 @@
 # ros2_bebop_driver
 
-This is a ROS2 rewrite derive from the original [ROS1 bebop_autonomy package](https://github.com/AutonomyLab/bebop_autonomy).
+This is a ROS2 rewrite derived from the original [ROS1 bebop_autonomy package](https://github.com/AutonomyLab/bebop_autonomy).
+
+If you wish, you could be using [ros1 bridge](https://github.com/ros2/ros1_bridge) to use the original bebop_autonomy ROS1 package. 
 
 This is clearly alpha release with some basic functionnalities which will hopefully grow from time to time.
 
