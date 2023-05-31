@@ -34,8 +34,15 @@ generate_states("ardrone3.xml")
 generate_settings("ardrone3.xml")
 
 # Adds the install rules for all the generated files
+file(GLOB GENERATED_MSG_FILES
+	LIST_DIRECTORIES false RELATIVE ${CMAKE_BINARY_DIR} "${CMAKE_BINARY_DIR}/msg/*.msg")
+# Rewrite the list to match the required format of  ABSOLUTE_PATH:RELATIVE_PATH_TO_MSG
+foreach(_msg ${GENERATED_MSG_FILES})
+	list(APPEND msg_files_to_process ${CMAKE_BINARY_DIR}:${_msg})
+endforeach()
+# Then trigger the interface generation
 rosidl_generate_interfaces(${PROJECT_NAME}
-	"${CMAKE_BINARY_DIR}:msg/Ardrone3AccessoryStateConnectedAccessories.msg"
+	${msg_files_to_process}
 	)
 
 
