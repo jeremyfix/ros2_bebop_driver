@@ -94,6 +94,7 @@ def strip_text(text):
         re.sub("\s\s+", " ", text.strip().replace("\n", "").replace("\r", ""))
         .replace('"', "")
         .replace("'", "")
+        .replace("\\n", "")
     )
 
 
