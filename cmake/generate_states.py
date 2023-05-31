@@ -110,9 +110,9 @@ def generate_states(xml_filename, template_dir):
     logging.info("Iterating all State <class> tags ...")
 
     generator = os.path.basename(__file__)
-    generator_git_hash = subprocess.check_output(
-        ["git", "rev-parse", "--short", "HEAD"]
-    ).strip()
+    # generator_git_hash = subprocess.check_output(
+    #     ["git", "rev-parse", "--short", "HEAD"]
+    # ).strip()
 
     d_cpp = dict(
         {
@@ -120,7 +120,7 @@ def generate_states(xml_filename, template_dir):
             # "project": project,
             # "date": today(),
             "generator": generator,
-            "generator_git_hash": generator_git_hash,
+            # "generator_git_hash": generator_git_hash,
             "queue_size": 10,  # 5Hz
             "frame_id": "base_link",
             "cpp_class": list(),
