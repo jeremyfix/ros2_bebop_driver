@@ -196,7 +196,9 @@ def generate_states(xml_filename, template_dir):
                     for enum in arg.iter("enum"):
                         f_enum_list.append(
                             {
-                                "constant_name": f_name + "_" + enum.attrib["name"],
+                                "constant_name": (
+                                    f_name + "_" + enum.attrib["name"]
+                                ).upper(),
                                 "constant_value": counter,
                                 "constant_comment": strip_text(enum.text),
                             }
@@ -206,7 +208,7 @@ def generate_states(xml_filename, template_dir):
                 d["msg_field"].append(
                     {
                         "msg_field_type": f_type,
-                        "msg_field_name": f_name,
+                        "msg_field_name": f_name.lower(),
                         "msg_field_comment": f_comment,
                         "msg_field_enum": deepcopy(f_enum_list),
                     }
