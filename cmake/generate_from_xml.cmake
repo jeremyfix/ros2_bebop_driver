@@ -8,9 +8,8 @@ function(generate_states xml_filename)
 	# Get the xml file
 	file(DOWNLOAD ${XML_URL} ${xml_filename})
 
-	#TODO: Generate the files; Will output the generated files
-
-	#TODO: Install the generated files
+    execute_process(COMMAND python3 ${CMAKE_SOURCE_DIR}/cmake/generate_states.py ${xml_filename}
+        ${CMAKE_SOURCE_DIR}/cmake/templates_states)
 endfunction()
 
 function(generate_settings xml_filename)
@@ -22,5 +21,4 @@ function(generate_settings xml_filename)
 
 	#TODO: Generate the files; Will output the generated files
 
-	#TODO: Install the generated files
 endfunction()
