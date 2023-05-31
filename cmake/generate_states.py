@@ -119,6 +119,7 @@ def generate_states(xml_filename, template_dir):
             # "url": xml_url,
             # "project": project,
             # "date": today(),
+            "xml_filename": xml_filename,
             "generator": generator,
             # "generator_git_hash": generator_git_hash,
             "queue_size": 10,  # 5Hz
