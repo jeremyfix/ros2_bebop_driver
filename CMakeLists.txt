@@ -21,12 +21,24 @@ find_package(ament_cmake REQUIRED)
 # further dependencies manually.
 find_package(ros2_parrot_arsdk REQUIRED)
 
+
+# Generate the states from the arsdk xml files
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+include(generate_from_xml)
+
+SET(ARSDKXML_HASH ab28dab91845cd36c4d7002b55f70805deaff3c8)
+
+generate_states("common.xml")
+generate_states("ardrone3.xml")
+generate_settings("ardrone3.xml")
+
+
+
 add_executable(bebop_driver src/bebop_driver_node.cpp src/bebop.cpp)
 include_directories(include)
 ament_target_dependencies(bebop_driver ros2_parrot_arsdk)
 target_link_libraries(bebop_driver ${ARSDK_LIBS})
 target_link_directories(bebop_driver PUBLIC ${ARSDK_LIB_DIR})
-
 
 target_include_directories(bebop_driver PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
