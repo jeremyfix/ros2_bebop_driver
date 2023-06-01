@@ -233,7 +233,7 @@ def generate_settings(xml_filename, template_dir):
             # The inner commands of the corresponding class are also follow a similar conention, they end in "CHANGED".
             # We create cfg files based on Settings, and ROS param updates based on SettingsChanged
             cpp_class_dict_key = rend.render_path(
-                "templates/dictionary_key.mustache",
+                f"{template_dir}/dictionary_key.mustache",
                 {
                     "project": project.upper(),
                     "class": cl.attrib["name"].upper() + "STATE",
@@ -384,31 +384,42 @@ def generate_settings(xml_filename, template_dir):
         d_cfg["cfg_class"].append(deepcopy(cfg_class_d))
 
     logging.info("... Done iterating, writing results to file")
+    # Generating the target directories
+    cfg_dir = "cfg"
+    if not os.path.exists(cfg_dir):
+        os.makedirs(cfg_dir)
+    include_dir = "include/ros2_bebop_driver"
+    if not os.path.exists(include_dir):
+        os.makedirs(include_dir)
 
     # .cfg write
-    cfg_file_name = d_cfg["cfg_filename"]
-    logging.info("Writing %s" % (cfg_file_name,))
+    cfg_file_name = f"{cfg_dir}/{d_cfg['cfg_filename']}"
+    logging.info(f"Writing {cfg_file_name}")
     with open(cfg_file_name, "w") as cfg_file:
-        cfg_file.write(rend.render_path("templates/cfg.mustache", d_cfg))
+        cfg_file.write(rend.render_path(f"{template_dir}/cfg.mustache", d_cfg))
 
-    header_file_name = "%s_setting_callbacks.h" % (project.lower(),)
-    logging.info("Writing %s" % (header_file_name,))
+    header_file_name = f"{include_dir}/{project.lower()}_setting_callbacks.h"
+    logging.info("Writing {header_file_name}")
     with open(header_file_name, "w") as header_file:
         header_file.write(
-            rend.render_path("templates/setting_callbacks.h.mustache", d_cfg)
+            rend.render_path(f"{template_dir}/setting_callbacks.h.mustache", d_cfg)
         )
 
-    include_file_name = "%s_setting_callback_includes.h" % (project.lower(),)
-    logging.info("Writing %s" % (include_file_name,))
+    include_file_name = f"{include_dir}/{project.lower()}_setting_callback_includes.h"
+    logging.info(f"Writing {include_file_name}")
     with open(include_file_name, "w") as include_file:
         include_file.write(
-            rend.render_path("templates/setting_callback_includes.h.mustache", d_cfg)
+            rend.render_path(
+                f"{template_dir}/setting_callback_includes.h.mustache", d_cfg
+            )
         )
 
-    rst_file_name = "%s_settings_param.rst" % (project.lower(),)
-    logging.info("Writing %s" % (rst_file_name,))
+    rst_file_name = "{project.lower()}_settings_param.rst"
+    logging.info(f"Writing {rst_file_name}")
     with open(rst_file_name, "w") as rst_file:
-        rst_file.write(rend.render_path("templates/settings_param.rst.mustache", d_cfg))
+        rst_file.write(
+            rend.render_path(f"{template_dir}/settings_param.rst.mustache", d_cfg)
+        )
 
 
 if __name__ == "__main__":
