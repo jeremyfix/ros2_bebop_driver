@@ -20,6 +20,6 @@ function(generate_settings xml_filename)
 	file(DOWNLOAD ${XML_URL} ${xml_filename})
 
     execute_process(COMMAND python3 ${CMAKE_SOURCE_DIR}/cmake/generate_settings.py ${xml_filename}
-        ${CMAKE_SOURCE_DIR}/cmake/templates_states)
+        ${CMAKE_SOURCE_DIR}/cmake/templates_settings)
 
 endfunction()
