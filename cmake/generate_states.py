@@ -39,12 +39,11 @@ import sys
 from copy import deepcopy
 import logging
 import os
-import subprocess
 import re
-import pystache
 
 # External imports
 import xml.etree.ElementTree as et
+import pystache
 
 # From XML types to ROS primitive types
 ROS_TYPE_MAP = {
