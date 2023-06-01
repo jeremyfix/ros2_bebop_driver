@@ -177,6 +177,7 @@ def generate_settings(xml_filename, template_dir):
     d_cfg = dict(
         {
             "cfg_filename": "Bebop%s.cfg" % (project.title(),),
+            "xml_filename": xml_filename,
             # "url": xml_url,
             "project": project.title(),
             # "date": today(),
