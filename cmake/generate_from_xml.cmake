@@ -19,6 +19,7 @@ function(generate_settings xml_filename)
 	# Get the xml file
 	file(DOWNLOAD ${XML_URL} ${xml_filename})
 
-	#TODO: Generate the files; Will output the generated files
+    execute_process(COMMAND python3 ${CMAKE_SOURCE_DIR}/cmake/generate_settings.py ${xml_filename}
+        ${CMAKE_SOURCE_DIR}/cmake/templates_states)
 
 endfunction()
