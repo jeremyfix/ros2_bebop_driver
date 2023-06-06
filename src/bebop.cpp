@@ -45,9 +45,45 @@ Bebop::~Bebop() {
     ARSAL_Sem_Destroy(&(stateSem));
 }
 
-void Bebop::connect(const std::string& bebop_ip) {
+void Bebop::connect(std::string bebop_ip, unsigned short bebop_port) {
     eARDISCOVERY_ERROR errorDiscovery = ARDISCOVERY_OK;
-    device = ARDISCOVERY_Device_New(&errorDiscovery);
+    ARDISCOVERY_Device_t* device = ARDISCOVERY_Device_New(&errorDiscovery);
+    throwOnDiscError(errorDiscovery, "Discovery error");
+
+    errorDiscovery =
+	ARDISCOVERY_Device_InitWifi(device, ARDISCOVERY_PRODUCT_BEBOP_2,
+				    "bebop2", bebop_ip.c_str(), bebop_port);
+    throwOnDiscError(errorDiscovery, "Discovery error");
+
+    eARCONTROLLER_ERROR error = ARCONTROLLER_OK;
+    deviceController = ARCONTROLLER_Device_New(device, &error);
+    throwOnCtrlError(error, "Creation of deviceController failed");
+
+    // Delete the discovery device
+    ARDISCOVERY_Device_Delete(&device);
+
+    // TODO: add the callbacks
+    /* error = ARCONTROLLER_Device_AddStateChangedCallback( */
+    /*     deviceController, stateChanged, deviceController); */
+    /* error = ARCONTROLLER_Device_AddCommandReceivedCallback( */
+    /*     deviceController, commandReceived, deviceController); */
+    /* error = ARCONTROLLER_Device_SetVideoStreamCallbacks( */
+    /*     deviceController, decoderConfigCallback, didReceiveFrameCallback, */
+    /*     NULL, NULL); */
+
+    throwOnCtrlError(ARCONTROLLER_Device_Start(deviceController),
+		     "Device controller start failed");
+    //
+    // TODO
+    ARSAL_Sem_Wait(&(stateSem));
+    // deviceState = ARCONTROLLER_Device_GetState(deviceController, &error);
+    //
+    throwOnCtrlError(deviceController->aRDrone3->sendMediaStreamingVideoEnable(
+			 deviceController->aRDrone3, 0),
+		     "Stopping video stream failed.");
+    // Congratulation: we are connected, the callbacks are setup and the video
+    // stream enabled
+    is_connected = true;
 }
 
 void Bebop::takeOff(void) {
@@ -144,6 +180,12 @@ void Bebop::throwOnCtrlError(const eARCONTROLLER_ERROR& error,
     if (error != ARCONTROLLER_OK)
 	throw std::runtime_error(
 	    message + std::string(ARCONTROLLER_Error_ToString(error)));
+}
+void Bebop::throwOnDiscError(const eARDISCOVERY_ERROR& error,
+			     const std::string& message) {
+    if (error != ARDISCOVERY_OK)
+	throw std::runtime_error(
+	    message + std::string(ARDISCOVERY_Error_ToString(error)));
 }
 
 }  // namespace bebop_driver

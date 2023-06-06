@@ -50,7 +50,7 @@ class Bebop {
    public:
     Bebop();
     ~Bebop();
-    void connect(const std::string& bebop_ip);
+    void connect(std::string bebop_ip, unsigned short bebop_port);
     void takeOff(void);
     void land(void);
     void emergency(void);
@@ -62,6 +62,8 @@ class Bebop {
 
     void throwOnInternalError(const std::string& message);
     void throwOnCtrlError(const eARCONTROLLER_ERROR& error,
+			  const std::string& message);
+    void throwOnDiscError(const eARDISCOVERY_ERROR& error,
 			  const std::string& message);
 };
 }  // namespace bebop_driver
