@@ -3,7 +3,8 @@ Software License Agreement (BSD)
 
 \file      bebop.cpp
 \authors   Jeremy Fix <jeremy.fix@centralesupelec.fr>
-\copyright Copyright (c) 2022, CentraleSupélec, All rights reserved.
+\copyright Copyright (c) 2022, CentraleSupélec, All rights reserved. Based on
+the work of Mani Monajjemi bebop_autonomy
 
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
