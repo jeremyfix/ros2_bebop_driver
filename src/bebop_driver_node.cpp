@@ -35,7 +35,6 @@ BebopDriverNode::BebopDriverNode()
 	"autoflight/navigate_home", 1,
 	[this]([[maybe_unused]] const std_msgs::msg::Bool::SharedPtr msg)
 	    -> void { this->bebop->navigateHome(msg->data); });
-    // TODO: autoflight : start, pause, stop
 
     // animationFlip
     subscription_animationFlip =

@@ -59,6 +59,13 @@ class Bebop {
     void move(double roll, double pitch, double gaz_speed, double yaw_speed);
     void moveCamera(double titl, double pan);
 
+    void stateChangedCallback(eARCONTROLLER_DEVICE_STATE new_state,
+			      eARCONTROLLER_ERROR error, void* customData);
+
+    void CommandReceivedCallback(
+	eARCONTROLLER_DICTIONARY_KEY cmd_key,
+	ARCONTROLLER_DICTIONARY_ELEMENT_t* element_dict_ptr);
+
     void throwOnInternalError(const std::string& message);
     void throwOnCtrlError(const eARCONTROLLER_ERROR& error,
 			  const std::string& message);

@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "ros2_bebop_driver/bebop.hpp"
 
 #include <cmath>
+#include <functional>
 #include <stdexcept>
 
 namespace bebop_driver {
@@ -39,7 +40,6 @@ namespace bebop_driver {
 Bebop::Bebop() { ARSAL_Sem_Init(&(stateSem), 0, 0); }
 
 Bebop::~Bebop() {
-    ARDISCOVERY_Device_Delete(&device);
     ARCONTROLLER_Device_Delete(&deviceController);
 
     ARSAL_Sem_Destroy(&(stateSem));
@@ -63,8 +63,11 @@ void Bebop::connect(std::string bebop_ip, unsigned short bebop_port) {
     ARDISCOVERY_Device_Delete(&device);
 
     // TODO: add the callbacks
-    /* error = ARCONTROLLER_Device_AddStateChangedCallback( */
-    /*     deviceController, stateChanged, deviceController); */
+    error = ARCONTROLLER_Device_AddStateChangedCallback(
+	deviceController,
+	std::bind(&Bebop::stateChangedCallback, *this, std::placeholders::_1,
+		  std::placeholders::_2, std::placeholders::_3),
+	deviceController);
     /* error = ARCONTROLLER_Device_AddCommandReceivedCallback( */
     /*     deviceController, commandReceived, deviceController); */
     /* error = ARCONTROLLER_Device_SetVideoStreamCallbacks( */
@@ -172,6 +175,15 @@ void Bebop::moveCamera(double tilt, double pan) {
 			 static_cast<int8_t>(pan)),
 		     "Camera move failed");
 }
+
+void Bebop::stateChangedCallback(eARCONTROLLER_DEVICE_STATE new_state,
+				 eARCONTROLLER_ERROR error, void* customData) {
+    ARSAL_Sem_Post(&(stateSem));
+}
+
+void Bebop::CommandReceivedCallback(
+    eARCONTROLLER_DICTIONARY_KEY cmd_key,
+    ARCONTROLLER_DICTIONARY_ELEMENT_t* element_dict_ptr) {}
 
 void Bebop::throwOnInternalError(const std::string& message) {
     if (!is_connected || !deviceController) throw std::runtime_error(message);
