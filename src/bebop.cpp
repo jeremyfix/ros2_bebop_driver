@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "ros2_bebop_driver/bebop.hpp"
 
+#include <cmath>
 #include <stdexcept>
 
 namespace bebop_driver {
@@ -94,6 +95,44 @@ void Bebop::animationFlip(uint8_t anim_id) {
 	    static_cast<eARCOMMANDS_ARDRONE3_ANIMATIONS_FLIP_DIRECTION>(
 		anim_id % ARCOMMANDS_ARDRONE3_ANIMATIONS_FLIP_DIRECTION_MAX)),
 	"Animation flip failed");
+}
+
+void Bebop::move(double roll, double pitch, double gaz_speed,
+		 double yaw_speed) {
+    // TODO(jeremyfix): Bound check
+    throwOnInternalError("Move failure");
+
+    // If roll or pitch value are non-zero, enable roll/pitch flag
+    const bool do_rp =
+	!((std::fabs(roll) < 0.001) && (std::fabs(pitch) < 0.001));
+
+    // If all values are zero, hover
+    const bool do_hover = !do_rp && (std::fabs(yaw_speed) < 0.001) &&
+			  (std::fabs(gaz_speed) < 0.001);
+
+    if (do_hover) {
+	/* ARSAL_PRINT(ARSAL_PRINT_DEBUG, LOG_TAG, "STOP"); */
+	throwOnCtrlError(deviceController->aRDrone3->setPilotingPCMD(
+			     deviceController->aRDrone3, 0, 0, 0, 0, 0, 0),
+			 "Hover failed");
+    } else {
+	throwOnCtrlError(deviceController->aRDrone3->setPilotingPCMD(
+			     deviceController->aRDrone3, do_rp,
+			     static_cast<int8_t>(roll * 100.0),
+			     static_cast<int8_t>(pitch * 100.0),
+			     static_cast<int8_t>(yaw_speed * 100.0),
+			     static_cast<int8_t>(gaz_speed * 100.0), 0),
+			 "Move failed");
+    }
+}
+
+// in degrees
+void Bebop::moveCamera(double tilt, double pan) {
+    throwOnInternalError("Camera Move Failure");
+    throwOnCtrlError(deviceController->aRDrone3->setCameraOrientation(
+			 deviceController->aRDrone3, static_cast<int8_t>(tilt),
+			 static_cast<int8_t>(pan)),
+		     "Camera move failed");
 }
 
 void Bebop::throwOnInternalError(const std::string& message) {

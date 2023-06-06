@@ -27,6 +27,8 @@ class Bebop {
     void flatTrim(void);
     void navigateHome(bool start_stop);
     void animationFlip(uint8_t anim_id);
+    void move(double roll, double pitch, double gaz_speed, double yaw_speed);
+    void moveCamera(double titl, double pan);
 
     void throwOnInternalError(const std::string& message);
     void throwOnCtrlError(const eARCONTROLLER_ERROR& error,
