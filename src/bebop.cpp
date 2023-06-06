@@ -65,8 +65,13 @@ void Bebop::connect(std::string bebop_ip, unsigned short bebop_port) {
     // TODO: add the callbacks
     error = ARCONTROLLER_Device_AddStateChangedCallback(
 	deviceController,
-	std::bind(&Bebop::stateChangedCallback, *this, std::placeholders::_1,
-		  std::placeholders::_2, std::placeholders::_3),
+	/* std::bind(&Bebop::stateChangedCallback, *this, std::placeholders::_1,
+	 */
+	/* 	  std::placeholders::_2, std::placeholders::_3), */
+	[this](eARCONTROLLER_DEVICE_STATE new_state, eARCONTROLLER_ERROR error,
+	       void* customData) -> void {
+	    this->stateChangedCallback(new_state, error, customData);
+	},
 	deviceController);
     /* error = ARCONTROLLER_Device_AddCommandReceivedCallback( */
     /*     deviceController, commandReceived, deviceController); */
