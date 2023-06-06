@@ -74,7 +74,8 @@ void Bebop::connect(std::string bebop_ip, unsigned short bebop_port) {
     throwOnCtrlError(ARCONTROLLER_Device_Start(deviceController),
 		     "Device controller start failed");
     //
-    // TODO
+    // TODO: we need the state callback methods !
+    // This semaphore is touched inside the StateCallback
     ARSAL_Sem_Wait(&(stateSem));
     // deviceState = ARCONTROLLER_Device_GetState(deviceController, &error);
     //
