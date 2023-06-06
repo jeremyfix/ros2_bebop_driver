@@ -40,11 +40,28 @@ extern "C" {
 #include <type_traits>
 
 namespace bebop_driver {
+
+void stateChangedCallback([[maybe_unused]] eARCONTROLLER_DEVICE_STATE new_state,
+			  [[maybe_unused]] eARCONTROLLER_ERROR error,
+			  void* customData);
+
+void commandReceivedCallback(
+    eARCONTROLLER_DICTIONARY_KEY cmd_key,
+    ARCONTROLLER_DICTIONARY_ELEMENT_t* element_dict_ptr, void* customData);
+
 class Bebop {
    private:
     ARSAL_Sem_t stateSem;
     ARCONTROLLER_Device_t* deviceController = nullptr;
+    eARCONTROLLER_DEVICE_STATE deviceState;
     bool is_connected = false;
+
+    friend void stateChangedCallback(eARCONTROLLER_DEVICE_STATE new_state,
+				     eARCONTROLLER_ERROR error,
+				     void* customData);
+    friend void commandReceivedCallback(
+	eARCONTROLLER_DICTIONARY_KEY cmd_key,
+	ARCONTROLLER_DICTIONARY_ELEMENT_t* element_dict_ptr, void* customData);
 
    public:
     Bebop();
@@ -59,17 +76,11 @@ class Bebop {
     void move(double roll, double pitch, double gaz_speed, double yaw_speed);
     void moveCamera(double titl, double pan);
 
-    void stateChangedCallback(eARCONTROLLER_DEVICE_STATE new_state,
-			      eARCONTROLLER_ERROR error, void* customData);
-
-    void CommandReceivedCallback(
-	eARCONTROLLER_DICTIONARY_KEY cmd_key,
-	ARCONTROLLER_DICTIONARY_ELEMENT_t* element_dict_ptr);
-
     void throwOnInternalError(const std::string& message);
     void throwOnCtrlError(const eARCONTROLLER_ERROR& error,
 			  const std::string& message);
     void throwOnDiscError(const eARDISCOVERY_ERROR& error,
 			  const std::string& message);
 };
+
 }  // namespace bebop_driver

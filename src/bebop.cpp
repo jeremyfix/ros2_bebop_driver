@@ -62,36 +62,32 @@ void Bebop::connect(std::string bebop_ip, unsigned short bebop_port) {
     // Delete the discovery device
     ARDISCOVERY_Device_Delete(&device);
 
-    // TODO: add the callbacks
+    // State, Command and VideoStream callbacks
     error = ARCONTROLLER_Device_AddStateChangedCallback(
-	deviceController,
-	/* std::bind(&Bebop::stateChangedCallback, *this, std::placeholders::_1,
-	 */
-	/* 	  std::placeholders::_2, std::placeholders::_3), */
-	[this](eARCONTROLLER_DEVICE_STATE new_state, eARCONTROLLER_ERROR error,
-	       void* customData) -> void {
-	    this->stateChangedCallback(new_state, error, customData);
-	},
-	deviceController);
-    /* error = ARCONTROLLER_Device_AddCommandReceivedCallback( */
-    /*     deviceController, commandReceived, deviceController); */
-    /* error = ARCONTROLLER_Device_SetVideoStreamCallbacks( */
-    /*     deviceController, decoderConfigCallback, didReceiveFrameCallback, */
-    /*     NULL, NULL); */
+	deviceController, stateChangedCallback, reinterpret_cast<void*>(this));
+    error = ARCONTROLLER_Device_AddCommandReceivedCallback(
+	deviceController, commandReceivedCallback,
+	reinterpret_cast<void*>(this));
+    // TODO: SetVideoStreamCallbacks
 
     throwOnCtrlError(ARCONTROLLER_Device_Start(deviceController),
 		     "Device controller start failed");
-    //
-    // TODO: we need the state callback methods !
     // This semaphore is touched inside the StateCallback
     ARSAL_Sem_Wait(&(stateSem));
-    // deviceState = ARCONTROLLER_Device_GetState(deviceController, &error);
+
+    // Check the device is running
+    deviceState = ARCONTROLLER_Device_GetState(deviceController, &error);
+    if ((error != ARCONTROLLER_OK) ||
+	(deviceState != ARCONTROLLER_DEVICE_STATE_RUNNING))
+	throw std::runtime_error(
+	    "Waiting for the device failed : " +
+	    std::string(ARCONTROLLER_Error_ToString(error)));
     //
     throwOnCtrlError(deviceController->aRDrone3->sendMediaStreamingVideoEnable(
 			 deviceController->aRDrone3, 0),
 		     "Stopping video stream failed.");
-    // Congratulation: we are connected, the callbacks are setup and the video
-    // stream enabled
+    // Congratulation: we are connected, the callbacks are setup and the
+    // video stream enabled
     is_connected = true;
 }
 
@@ -181,14 +177,21 @@ void Bebop::moveCamera(double tilt, double pan) {
 		     "Camera move failed");
 }
 
-void Bebop::stateChangedCallback(eARCONTROLLER_DEVICE_STATE new_state,
-				 eARCONTROLLER_ERROR error, void* customData) {
-    ARSAL_Sem_Post(&(stateSem));
+void stateChangedCallback([[maybe_unused]] eARCONTROLLER_DEVICE_STATE new_state,
+			  [[maybe_unused]] eARCONTROLLER_ERROR error,
+			  void* customData) {
+    // Note, we can add a logic based on new_state being either
+    // ARCONTROLLER_DEVICE_STATE_STOPPED or ARCONTROLLER_DEVICE_STATE_RUNNING
+    Bebop* bebop_ptr = static_cast<Bebop*>(customData);
+    ARSAL_Sem_Post(&(bebop_ptr->stateSem));
 }
 
-void Bebop::CommandReceivedCallback(
+void commandReceivedCallback(
     eARCONTROLLER_DICTIONARY_KEY cmd_key,
-    ARCONTROLLER_DICTIONARY_ELEMENT_t* element_dict_ptr) {}
+    ARCONTROLLER_DICTIONARY_ELEMENT_t* element_dict_ptr, void* customData) {
+    /* Bebop* bebop_ptr = static_cast<Bebop*>(customData); */
+    // TODO: to be done when the generation from XML is done
+}
 
 void Bebop::throwOnInternalError(const std::string& message) {
     if (!is_connected || !deviceController) throw std::runtime_error(message);
