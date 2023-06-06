@@ -30,7 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "ros2_bebop_driver/bebop.hpp"
 
-/* #include "ros2_bebop_driver/BebopArdrone3Config.h" */
+#include "ros2_bebop_driver/BebopArdrone3Config.h"
 /* #include "ros2_bebop_driver/bebop_video_decoder.h" */
 
 // include all callback wrappers
