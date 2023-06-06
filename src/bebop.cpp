@@ -30,13 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "ros2_bebop_driver/bebop.hpp"
 
-/* #include "ros2_bebop_driver/BebopArdrone3Config.h" */
-/* #include "ros2_bebop_driver/bebop_video_decoder.h" */
-
-// include all callback wrappers
-#include "ros2_bebop_driver/ardrone3_setting_callbacks.h"
-#include "ros2_bebop_driver/ardrone3_state_callbacks.h"
-#include "ros2_bebop_driver/common_state_callbacks.h"
+#include <stdexcept>
 
 namespace bebop_driver {
 
@@ -54,7 +48,63 @@ void Bebop::connect(const std::string& bebop_ip) {
     device = ARDISCOVERY_Device_New(&errorDiscovery);
 }
 
-void Bebop::takeOff() {}
+void Bebop::takeOff(void) {
+    throwOnInternalError("TakeOff failed");
+    throwOnCtrlError(deviceController->aRDrone3->sendPilotingTakeOff(
+			 deviceController->aRDrone3),
+		     "Takeoff failed");
+}
 
-void Bebop::land() {}
+void Bebop::land(void) {
+    throwOnInternalError("Land failed");
+    throwOnCtrlError(deviceController->aRDrone3->sendPilotingLanding(
+			 deviceController->aRDrone3),
+		     "Land failed");
+}
+
+void Bebop::emergency(void) {
+    throwOnInternalError("Emergency failed");
+    throwOnCtrlError(deviceController->aRDrone3->sendPilotingEmergency(
+			 deviceController->aRDrone3),
+		     "Emergency failed");
+}
+
+void Bebop::flatTrim(void) {
+    throwOnInternalError("FlatTrim failed");
+    throwOnCtrlError(deviceController->aRDrone3->sendPilotingFlatTrim(
+			 deviceController->aRDrone3),
+		     "FlatTrim failed");
+}
+
+void Bebop::navigateHome(bool start_stop) {
+    throwOnInternalError("Navigate home failed");
+    throwOnCtrlError(deviceController->aRDrone3->sendPilotingNavigateHome(
+			 deviceController->aRDrone3, start_stop ? 1 : 0),
+		     "Navigate home failed");
+}
+
+void Bebop::animationFlip(uint8_t anim_id) {
+    throwOnInternalError("Animation failed");
+    if (anim_id >= ARCOMMANDS_ARDRONE3_ANIMATIONS_FLIP_DIRECTION_MAX) {
+	throw std::runtime_error("Invalid animation id");
+    }
+    throwOnCtrlError(
+	deviceController->aRDrone3->sendAnimationsFlip(
+	    deviceController->aRDrone3,
+	    static_cast<eARCOMMANDS_ARDRONE3_ANIMATIONS_FLIP_DIRECTION>(
+		anim_id % ARCOMMANDS_ARDRONE3_ANIMATIONS_FLIP_DIRECTION_MAX)),
+	"Animation flip failed");
+}
+
+void Bebop::throwOnInternalError(const std::string& message) {
+    if (!is_connected || !deviceController) throw std::runtime_error(message);
+}
+void Bebop::throwOnCtrlError(const eARCONTROLLER_ERROR& error,
+			     const std::string& message) {
+    if (error != ARCONTROLLER_OK)
+	throw std::runtime_error(
+	    message + std::string(ARCONTROLLER_Error_ToString(error)));
+}
+
 }  // namespace bebop_driver
+

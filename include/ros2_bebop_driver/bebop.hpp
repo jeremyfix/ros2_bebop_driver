@@ -7,13 +7,15 @@ extern "C" {
 }
 
 #include <string>
+#include <type_traits>
 
 namespace bebop_driver {
 class Bebop {
    private:
     ARSAL_Sem_t stateSem;
-    ARDISCOVERY_Device_t* device = NULL;
-    ARCONTROLLER_Device_t* deviceController = NULL;
+    ARDISCOVERY_Device_t* device = nullptr;
+    ARCONTROLLER_Device_t* deviceController = nullptr;
+    bool is_connected = false;
 
    public:
     Bebop();
@@ -21,5 +23,13 @@ class Bebop {
     void connect(const std::string& bebop_ip);
     void takeOff(void);
     void land(void);
+    void emergency(void);
+    void flatTrim(void);
+    void navigateHome(bool start_stop);
+    void animationFlip(uint8_t anim_id);
+
+    void throwOnInternalError(const std::string& message);
+    void throwOnCtrlError(const eARCONTROLLER_ERROR& error,
+			  const std::string& message);
 };
 }  // namespace bebop_driver
