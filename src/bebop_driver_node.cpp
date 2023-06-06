@@ -6,13 +6,32 @@ namespace bebop_driver {
 
 #define SIMPLECALLBACK(subscriber, msgtype, topic, method)              \
     subscriber = this->create_subscription<msgtype>(                    \
-	#topic, 1,                                                      \
+	topic, 1,                                                       \
 	[this]([[maybe_unused]] const msgtype::SharedPtr msg) -> void { \
 	    this->bebop->method();                                      \
 	});
 
 BebopDriverNode::BebopDriverNode()
     : rclcpp::Node("bebop_driver_node"), bebop(std::make_shared<Bebop>()) {
+    {
+	auto param_desc = rcl_interfaces::msg::ParameterDescriptor{};
+	param_desc.description = "The IP of the bebop to connect to";
+
+	this->declare_parameter("bebop_ip", "192.168.42.1", param_desc);
+    }
+    {
+	auto param_desc = rcl_interfaces::msg::ParameterDescriptor{};
+	param_desc.description = "The port of the bebop to connect to";
+
+	this->declare_parameter("bebop_port", 44444, param_desc);
+    }
+
+    auto bebop_ip = this->get_parameter("bebop_ip").as_string();
+    auto bebop_port = this->get_parameter("bebop_port").as_int();
+    RCLCPP_INFO(this->get_logger(), "Connecting to the bebop %s:%d",
+		bebop_ip.c_str(), bebop_port);
+    bebop->connect(bebop_ip, bebop_port);
+
     // The core functions subscribers
     // For: TakeOff, Land, Emergency, flatTrim, navigateHome, animationFlip,
     // move and moveCamera
