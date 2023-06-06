@@ -43,7 +43,6 @@ namespace bebop_driver {
 class Bebop {
    private:
     ARSAL_Sem_t stateSem;
-    ARDISCOVERY_Device_t* device = nullptr;
     ARCONTROLLER_Device_t* deviceController = nullptr;
     bool is_connected = false;
 
