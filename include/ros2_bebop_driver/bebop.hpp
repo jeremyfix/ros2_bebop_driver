@@ -36,8 +36,11 @@ extern "C" {
 #include <libARSAL/ARSAL.h>
 }
 
+#include <condition_variable>
+#include <mutex>
 #include <string>
 #include <type_traits>
+#include <vector>
 
 namespace bebop_driver {
 
@@ -64,16 +67,31 @@ class Bebop {
     friend void stateChangedCallback(eARCONTROLLER_DEVICE_STATE new_state,
 				     eARCONTROLLER_ERROR error,
 				     void* customData);
+
     friend void commandReceivedCallback(
 	[[maybe_unused]] eARCONTROLLER_DICTIONARY_KEY cmd_key,
 	ARCONTROLLER_DICTIONARY_ELEMENT_t* element_dict_ptr, void* customData);
 
+    friend eARCONTROLLER_ERROR decoderConfigCallback(
+	ARCONTROLLER_Stream_Codec_t codec, void* customData);
+
+    friend eARCONTROLLER_ERROR didReceiveFrameCallback(
+	ARCONTROLLER_Frame_t* frame, void* customData);
+
     bool is_streaming_started = false;
+
+    bool is_frame_available = false;  // Shared variable
+				      // frame : SharedVariable
+    std::mutex frame_available_mutex;
+    std::condition_variable frame_available_condition;
 
    public:
     Bebop();
     ~Bebop();
     void connect(std::string bebop_ip, unsigned short bebop_port);
+    bool isConnected(void) const;
+    void disconnect(void);
+
     void takeOff(void);
     void land(void);
     void emergency(void);
@@ -86,6 +104,8 @@ class Bebop {
     void startStreaming(void);
     void stopStreaming(void);
     bool isStreamingStarted(void) const;
+    bool getFrontCameraFrame(std::vector<uint8_t>& buffer, uint32_t& width,
+			     uint32_t& height);
 
     void throwOnInternalError(const std::string& message);
     void throwOnCtrlError(const eARCONTROLLER_ERROR& error,

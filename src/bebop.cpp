@@ -92,7 +92,7 @@ void Bebop::connect(std::string bebop_ip, unsigned short bebop_port) {
     ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- set Video callback ... ");
     error = ARCONTROLLER_Device_SetVideoStreamCallbacks(
 	deviceController, decoderConfigCallback, didReceiveFrameCallback, NULL,
-	NULL);
+	reinterpret_cast<void*>(this));
     if (error != ARCONTROLLER_OK) {
 	ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error: %s",
 		    ARCONTROLLER_Error_ToString(error));
@@ -121,6 +121,12 @@ void Bebop::connect(std::string bebop_ip, unsigned short bebop_port) {
     // Congratulation: we are connected, the callbacks are setup and the
     // video stream enabled
     is_connected = true;
+}
+
+bool Bebop::isConnected() const { return is_connected; }
+
+void Bebop::disconnect(void) {
+    // TODO
 }
 
 void Bebop::takeOff(void) {
@@ -261,17 +267,34 @@ void Bebop::stopStreaming(void) {
 }
 bool Bebop::isStreamingStarted(void) const { return is_streaming_started; }
 
+bool Bebop::getFrontCameraFrame(std::vector<uint8_t>& buffer, uint32_t& width,
+				uint32_t& height) {
+    // This method is called from the ros node
+    // publishCamera timer which is in a separate thread than the main thread
+    // which may be in charge of calling didReceiveFrameCallback
+    std::unique_lock<std::mutex> lock(frame_available_mutex);
+    frame_available_condition.wait(lock,
+				   [this] { return this->is_frame_available; });
+    // TODO
+    // 1- get the height, width of the decoded frame
+    // 2- resize if necessary the buffer
+    // 3- copy the content of the decoded into buffer
+    // 4- update attributes with height and width
+    // 5- set is_frame_available to false because we took it
+    return true;
+}
+
 void stateChangedCallback(eARCONTROLLER_DEVICE_STATE new_state,
 			  [[maybe_unused]] eARCONTROLLER_ERROR error,
 			  void* customData) {
-    Bebop* bebop_ptr = static_cast<Bebop*>(customData);
+    Bebop* bebop = static_cast<Bebop*>(customData);
     switch (new_state) {
 	case ARCONTROLLER_DEVICE_STATE_STOPPED:
-	    ARSAL_Sem_Post(&(bebop_ptr->stateSem));
+	    ARSAL_Sem_Post(&(bebop->stateSem));
 	    break;
 
 	case ARCONTROLLER_DEVICE_STATE_RUNNING:
-	    ARSAL_Sem_Post(&(bebop_ptr->stateSem));
+	    ARSAL_Sem_Post(&(bebop->stateSem));
 	    break;
 	case ARCONTROLLER_DEVICE_STATE_STARTING:
 	case ARCONTROLLER_DEVICE_STATE_PAUSED:
@@ -286,7 +309,7 @@ void commandReceivedCallback(
     [[maybe_unused]] eARCONTROLLER_DICTIONARY_KEY cmd_key,
     [[maybe_unused]] ARCONTROLLER_DICTIONARY_ELEMENT_t* element_dict_ptr,
     [[maybe_unused]] void* customData) {
-    /* Bebop* bebop_ptr = static_cast<Bebop*>(customData); */
+    /* Bebop* bebop = static_cast<Bebop*>(customData); */
     // TODO: to be done when the generation from XML is done
 }
 
@@ -294,12 +317,40 @@ eARCONTROLLER_ERROR decoderConfigCallback(
     [[maybe_unused]] ARCONTROLLER_Stream_Codec_t codec,
     [[maybe_unused]] void* customData) {
     // TODO:
+
+    uint8_t* sps_buffer_ptr = codec.parameters.h264parameters.spsBuffer;
+    uint32_t sps_buffer_size = codec.parameters.h264parameters.spsSize;
+    uint8_t* pps_buffer_ptr = codec.parameters.h264parameters.ppsBuffer;
+    uint32_t pps_buffer_size = codec.parameters.h264parameters.ppsSize;
+
     return ARCONTROLLER_OK;
 }
 eARCONTROLLER_ERROR didReceiveFrameCallback(
-    [[maybe_unused]] ARCONTROLLER_Frame_t* frame,
-    [[maybe_unused]] void* customData) {
-    // TODO:
+    [[maybe_unused]] ARCONTROLLER_Frame_t* frame, void* customData) {
+    if (!frame) {
+	ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "Received frame is NULL");
+	return ARCONTROLLER_ERROR_NO_VIDEO;
+    }
+
+    Bebop* bebop = static_cast<Bebop*>(customData);
+
+    if (!bebop->isConnected()) return ARCONTROLLER_ERROR;
+    {
+	std::lock_guard<std::mutex> lock(bebop->frame_available_mutex);
+	if (bebop->is_frame_available) {
+	    ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG,
+			"Previous frame might have been missed.");
+	}
+
+	/* if (!bebop->video_decoder_ptr_->Decode(frame)) { */
+	if (false) {  // TODO decoding logic
+	    ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Video decode failed");
+	} else {
+	    bebop->is_frame_available = true;
+	    // ARSAL_PRINT(ARSAL_PRINT_INFO, LOG_TAG, "FRAME IS READY");
+	    bebop->frame_available_condition.notify_one();
+	}
+    }
     return ARCONTROLLER_OK;
 }
 
