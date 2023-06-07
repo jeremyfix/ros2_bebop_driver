@@ -49,6 +49,11 @@ void commandReceivedCallback(
     eARCONTROLLER_DICTIONARY_KEY cmd_key,
     ARCONTROLLER_DICTIONARY_ELEMENT_t* element_dict_ptr, void* customData);
 
+eARCONTROLLER_ERROR decoderConfigCallback(ARCONTROLLER_Stream_Codec_t codec,
+					  void* customData);
+eARCONTROLLER_ERROR didReceiveFrameCallback(ARCONTROLLER_Frame_t* frame,
+					    void* customData);
+
 class Bebop {
    private:
     ARSAL_Sem_t stateSem;

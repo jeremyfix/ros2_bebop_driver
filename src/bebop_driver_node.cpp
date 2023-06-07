@@ -58,6 +58,7 @@ BebopDriverNode::BebopDriverNode()
     RCLCPP_INFO(this->get_logger(), "Connecting to the bebop %s:%d",
 		bebop_ip.c_str(), bebop_port);
     bebop->connect(bebop_ip, bebop_port);
+    RCLCPP_INFO(this->get_logger(), "Connected");
 
     // The core functions subscribers
     // For: TakeOff, Land, Emergency, flatTrim, navigateHome, animationFlip,
@@ -79,7 +80,7 @@ BebopDriverNode::BebopDriverNode()
 		   flatTrim);
 
     // navigateHome
-    subscription_navigateHome = *this->create_subscription<std_msgs::msg::Bool>(
+    subscription_navigateHome = this->create_subscription<std_msgs::msg::Bool>(
 	"autoflight/navigate_home", 1,
 	[this]([[maybe_unused]] const std_msgs::msg::Bool::SharedPtr msg)
 	    -> void { this->bebop->navigateHome(msg->data); });
