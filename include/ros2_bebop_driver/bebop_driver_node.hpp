@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <camera_info_manager/camera_info_manager.hpp>
+#include <geometry_msgs/msg/twist.hpp>
 #include <image_transport/image_transport.hpp>
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
@@ -52,6 +53,8 @@ class BebopDriverNode : public rclcpp::Node {
 	subscription_navigateHome;
     rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr
 	subscription_animationFlip;
+    rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr
+	subscription_cmdVel;
 
     std::string odom_frame_id;
     std::string camera_frame_id;
@@ -60,6 +63,7 @@ class BebopDriverNode : public rclcpp::Node {
     rclcpp::TimerBase::SharedPtr camera_timer;
 
     void publishCamera(void);
+    void cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr msg);
 
    public:
     BebopDriverNode();

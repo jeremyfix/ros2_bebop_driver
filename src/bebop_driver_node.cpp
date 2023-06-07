@@ -94,6 +94,12 @@ BebopDriverNode::BebopDriverNode()
 		this->bebop->animationFlip(msg->data);
 	    });
 
+    // cmdvel
+    subscription_cmdVel = this->create_subscription<geometry_msgs::msg::Twist>(
+	"cmd_vel", 1,
+	std::bind(&BebopDriverNode::cmdVelCallback, this,
+		  std::placeholders::_1));
+
     // Camera info publication on a regular basis
     camera_timer = this->create_wall_timer(
 	30ms, std::bind(&BebopDriverNode::publishCamera, this));
@@ -110,6 +116,16 @@ void BebopDriverNode::publishCamera(void) {
 
     // publisher_camera.publish(image_msg, camera_info_msg);
 }
+
+void BebopDriverNode::cmdVelCallback(
+    const geometry_msgs::msg::Twist::SharedPtr msg) {
+    double roll = msg->linear.y;
+    double pitch = msg->linear.x;
+    double gaz_speed = msg->linear.z;
+    double yaw_speed = msg->angular.z;
+    bebop->move(roll, pitch, gaz_speed, yaw_speed);
+}
+
 }  // namespace bebop_driver
 
 int main(int argc, char** argv) {
