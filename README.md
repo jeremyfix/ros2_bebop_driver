@@ -12,7 +12,7 @@ This is clearly alpha release with some basic functionnalities which will hopefu
 | --- | --- | --- |
 | SDK Version | 3.14.0 | Depends on [ros2_parrot_arsdk](https://github.com/jeremyfix/ros2_parrot_arsdk) |
 | Support for Parrot Bebop 2 | Yes | |
-| Core piloting (takeoff, land, move, ..) | No | |
+| Core piloting (takeoff, land, move, ..) | Yes | |
 | H264 video decoding | No | |
 | ROS Camera interface | No | |
 | Publish bebop states as ROS topics | No | | 
