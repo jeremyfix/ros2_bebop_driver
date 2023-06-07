@@ -68,6 +68,8 @@ class Bebop {
 	[[maybe_unused]] eARCONTROLLER_DICTIONARY_KEY cmd_key,
 	ARCONTROLLER_DICTIONARY_ELEMENT_t* element_dict_ptr, void* customData);
 
+    bool is_streaming_started = false;
+
    public:
     Bebop();
     ~Bebop();
@@ -80,6 +82,10 @@ class Bebop {
     void animationFlip(uint8_t anim_id);
     void move(double roll, double pitch, double gaz_speed, double yaw_speed);
     void moveCamera(double titl, double pan);
+
+    void startStreaming(void);
+    void stopStreaming(void);
+    bool isStreamingStarted(void) const;
 
     void throwOnInternalError(const std::string& message);
     void throwOnCtrlError(const eARCONTROLLER_ERROR& error,

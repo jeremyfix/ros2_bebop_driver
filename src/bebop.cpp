@@ -54,7 +54,7 @@ Bebop::~Bebop() {
 
 void Bebop::connect(std::string bebop_ip, unsigned short bebop_port) {
     eARDISCOVERY_ERROR errorDiscovery = ARDISCOVERY_OK;
-    ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- init discovey device ... ");
+    ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- init discovey device ...");
     ARDISCOVERY_Device_t* device = ARDISCOVERY_Device_New(&errorDiscovery);
     throwOnDiscError(errorDiscovery, "Discovery error");
 
@@ -117,6 +117,7 @@ void Bebop::connect(std::string bebop_ip, unsigned short bebop_port) {
     throwOnCtrlError(deviceController->aRDrone3->sendMediaStreamingVideoEnable(
 			 deviceController->aRDrone3, 0),
 		     "Stopping video stream failed.");
+    is_streaming_started = false;
     // Congratulation: we are connected, the callbacks are setup and the
     // video stream enabled
     is_connected = true;
@@ -217,11 +218,52 @@ void Bebop::moveCamera(double tilt, double pan) {
 		     "Camera move failed");
 }
 
+void Bebop::startStreaming(void) {
+    if (is_streaming_started) {
+	ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG,
+		    "Video streaming is already started ...");
+	return;
+    }
+    try {
+	throwOnInternalError("Starting video stream failed");
+	// Start video streaming
+	throwOnCtrlError(
+	    deviceController->aRDrone3->sendMediaStreamingVideoEnable(
+		deviceController->aRDrone3, 1),
+	    "Starting video stream failed.");
+	is_streaming_started = true;
+	ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "Video streaming started ...");
+    } catch (const std::runtime_error& e) {
+	ARSAL_PRINT(ARSAL_PRINT_INFO, TAG,
+		    "Failed to start video streaming ...");
+	is_streaming_started = false;
+	throw e;
+    }
+}
+void Bebop::stopStreaming(void) {
+    if (!is_streaming_started) {
+	ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG,
+		    "Video streaming was not started ...");
+	return;
+    }
+    try {
+	throwOnInternalError("Stopping video stream failed");
+	// Stop video streaming
+	throwOnCtrlError(
+	    deviceController->aRDrone3->sendMediaStreamingVideoEnable(
+		deviceController->aRDrone3, 0),
+	    "Stopping video stream failed.");
+	is_streaming_started = false;
+    } catch (const std::runtime_error& e) {
+	ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG,
+		    "Failed to stop video streaming ...");
+    }
+}
+bool Bebop::isStreamingStarted(void) const { return is_streaming_started; }
+
 void stateChangedCallback(eARCONTROLLER_DEVICE_STATE new_state,
 			  [[maybe_unused]] eARCONTROLLER_ERROR error,
 			  void* customData) {
-    ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "    - stateChanged newState: %d.....",
-		new_state);
     Bebop* bebop_ptr = static_cast<Bebop*>(customData);
     switch (new_state) {
 	case ARCONTROLLER_DEVICE_STATE_STOPPED:

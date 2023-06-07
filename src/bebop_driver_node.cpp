@@ -100,9 +100,15 @@ BebopDriverNode::BebopDriverNode()
 	std::bind(&BebopDriverNode::cmdVelCallback, this,
 		  std::placeholders::_1));
 
-    // Camera info publication on a regular basis
-    camera_timer = this->create_wall_timer(
-	30ms, std::bind(&BebopDriverNode::publishCamera, this));
+    bebop->startStreaming();
+    if (bebop->isStreamingStarted()) {
+	// Camera info publication on a regular basis
+	camera_timer = this->create_wall_timer(
+	    30ms, std::bind(&BebopDriverNode::publishCamera, this));
+	RCLCPP_INFO(this->get_logger(), "Streaming is started");
+    } else {
+	RCLCPP_ERROR(this->get_logger(), "Failed to start streaming");
+    }
 }
 
 void BebopDriverNode::publishCamera(void) {
