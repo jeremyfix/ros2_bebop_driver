@@ -31,6 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "ros2_bebop_driver/bebop.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <functional>
 #include <stdexcept>
@@ -171,8 +172,17 @@ void Bebop::animationFlip(uint8_t anim_id) {
 
 void Bebop::move(double roll, double pitch, double gaz_speed,
 		 double yaw_speed) {
-    // TODO(jeremyfix): Bound check
+    // Note from libARController/ARCONTROLLER_Feature.h:
+    // The libARController is sending the command each 50ms
+    // The setPilotingCMD is taking as inputs, for the 4 dimensions
+    // signed percentages in [-100, 100]
     throwOnInternalError("Move failure");
+
+    // Clamp the provided values to the bounds of ARSDK
+    roll = std::clamp(roll, -1.0, 1.0);
+    pitch = std::clamp(pitch, -1.0, 1.0);
+    gaz_speed = std::clamp(gaz_speed, -1.0, 1.0);
+    yaw_speed = std::clamp(yaw_speed, -1.0, 1.0);
 
     // If roll or pitch value are non-zero, enable roll/pitch flag
     const bool do_rp =
@@ -207,7 +217,7 @@ void Bebop::moveCamera(double tilt, double pan) {
 		     "Camera move failed");
 }
 
-void stateChangedCallback([[maybe_unused]] eARCONTROLLER_DEVICE_STATE new_state,
+void stateChangedCallback(eARCONTROLLER_DEVICE_STATE new_state,
 			  [[maybe_unused]] eARCONTROLLER_ERROR error,
 			  void* customData) {
     ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "    - stateChanged newState: %d.....",
@@ -231,18 +241,23 @@ void stateChangedCallback([[maybe_unused]] eARCONTROLLER_DEVICE_STATE new_state,
 }
 
 void commandReceivedCallback(
-    eARCONTROLLER_DICTIONARY_KEY cmd_key,
-    ARCONTROLLER_DICTIONARY_ELEMENT_t* element_dict_ptr, void* customData) {
+    [[maybe_unused]] eARCONTROLLER_DICTIONARY_KEY cmd_key,
+    [[maybe_unused]] ARCONTROLLER_DICTIONARY_ELEMENT_t* element_dict_ptr,
+    [[maybe_unused]] void* customData) {
     /* Bebop* bebop_ptr = static_cast<Bebop*>(customData); */
     // TODO: to be done when the generation from XML is done
 }
 
-eARCONTROLLER_ERROR decoderConfigCallback(ARCONTROLLER_Stream_Codec_t codec,
-					  void* customData) {
+eARCONTROLLER_ERROR decoderConfigCallback(
+    [[maybe_unused]] ARCONTROLLER_Stream_Codec_t codec,
+    [[maybe_unused]] void* customData) {
+    // TODO:
     return ARCONTROLLER_OK;
 }
-eARCONTROLLER_ERROR didReceiveFrameCallback(ARCONTROLLER_Frame_t* frame,
-					    void* customData) {
+eARCONTROLLER_ERROR didReceiveFrameCallback(
+    [[maybe_unused]] ARCONTROLLER_Frame_t* frame,
+    [[maybe_unused]] void* customData) {
+    // TODO:
     return ARCONTROLLER_OK;
 }
 

@@ -41,7 +41,7 @@ extern "C" {
 
 namespace bebop_driver {
 
-void stateChangedCallback([[maybe_unused]] eARCONTROLLER_DEVICE_STATE new_state,
+void stateChangedCallback(eARCONTROLLER_DEVICE_STATE new_state,
 			  [[maybe_unused]] eARCONTROLLER_ERROR error,
 			  void* customData);
 
@@ -65,7 +65,7 @@ class Bebop {
 				     eARCONTROLLER_ERROR error,
 				     void* customData);
     friend void commandReceivedCallback(
-	eARCONTROLLER_DICTIONARY_KEY cmd_key,
+	[[maybe_unused]] eARCONTROLLER_DICTIONARY_KEY cmd_key,
 	ARCONTROLLER_DICTIONARY_ELEMENT_t* element_dict_ptr, void* customData);
 
    public:
