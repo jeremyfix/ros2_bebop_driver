@@ -38,6 +38,7 @@ BebopDriverNode::BebopDriverNode()
 	auto camera_calibration_file_param = this->declare_parameter(
 	    "camera_calibration_file",
 	    "package://ros2_bebop_driver/config/bebop2.yaml");
+	cinfo_manager->setCameraName("bebop_front");
 	cinfo_manager->loadCameraInfo(camera_calibration_file_param);
     }
     {
