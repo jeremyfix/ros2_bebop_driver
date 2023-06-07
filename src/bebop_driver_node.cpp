@@ -1,6 +1,9 @@
 #include "ros2_bebop_driver/bebop_driver_node.hpp"
 
+#include <chrono>
 #include <cstdio>
+
+using namespace std::chrono_literals;
 
 namespace bebop_driver {
 
@@ -26,6 +29,30 @@ BebopDriverNode::BebopDriverNode()
 	this->declare_parameter("bebop_port", 44444, param_desc);
     }
 
+    cinfo_manager =
+	std::make_shared<camera_info_manager::CameraInfoManager>(this);
+    {
+	/* get ROS2 config parameter for camera calibration file */
+	auto param_desc = rcl_interfaces::msg::ParameterDescriptor{};
+	param_desc.description = "The path to the yaml camera calibration file";
+	auto camera_calibration_file_param = this->declare_parameter(
+	    "camera_calibration_file",
+	    "package://ros2_bebop_driver/config/bebop2.yaml");
+	cinfo_manager->loadCameraInfo(camera_calibration_file_param);
+    }
+    {
+	auto param_desc = rcl_interfaces::msg::ParameterDescriptor{};
+	param_desc.description = "The frame id of the camera";
+	camera_frame_id =
+	    this->declare_parameter("camera_frame_id", "camera_optical");
+    }
+    {
+	auto param_desc = rcl_interfaces::msg::ParameterDescriptor{};
+	param_desc.description =
+	    "The frame id of the odometry frame of reference";
+	odom_frame_id = this->declare_parameter("odom_frame_id", "odom");
+    }
+
     auto bebop_ip = this->get_parameter("bebop_ip").as_string();
     auto bebop_port = this->get_parameter("bebop_port").as_int();
     RCLCPP_INFO(this->get_logger(), "Connecting to the bebop %s:%d",
@@ -34,6 +61,7 @@ BebopDriverNode::BebopDriverNode()
 
     // The core functions subscribers
     // For: TakeOff, Land, Emergency, flatTrim, navigateHome, animationFlip,
+
     // move and moveCamera
     // TakeOff
     SIMPLECALLBACK(subscription_takeoff, std_msgs::msg::Empty, "takeoff",
@@ -47,10 +75,11 @@ BebopDriverNode::BebopDriverNode()
 
     // FlatTrim
     SIMPLECALLBACK(subscription_flattrim, std_msgs::msg::Empty, "flattrim",
+
 		   flatTrim);
 
     // navigateHome
-    subscription_navigateHome = this->create_subscription<std_msgs::msg::Bool>(
+    subscription_navigateHome = *this->create_subscription<std_msgs::msg::Bool>(
 	"autoflight/navigate_home", 1,
 	[this]([[maybe_unused]] const std_msgs::msg::Bool::SharedPtr msg)
 	    -> void { this->bebop->navigateHome(msg->data); });
@@ -62,8 +91,23 @@ BebopDriverNode::BebopDriverNode()
 	    [this](const std_msgs::msg::UInt8::SharedPtr msg) -> void {
 		this->bebop->animationFlip(msg->data);
 	    });
+
+    // Camera info publication on a regular basis
+    camera_timer = this->create_wall_timer(
+	30ms, std::bind(&BebopDriverNode::publishCamera, this));
 }
 
+void BebopDriverNode::publishCamera(void) {
+    sensor_msgs::msg::CameraInfo::SharedPtr camera_info_msg(
+	new sensor_msgs::msg::CameraInfo(cinfo_manager->getCameraInfo()));
+
+    rclcpp::Time timestamp = this->get_clock()->now();
+
+    camera_info_msg->header.stamp = timestamp;
+    camera_info_msg->header.frame_id = camera_frame_id;
+
+    // publisher_camera.publish(image_msg, camera_info_msg);
+}
 }  // namespace bebop_driver
 
 int main(int argc, char** argv) {

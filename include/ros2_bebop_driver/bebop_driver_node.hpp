@@ -29,6 +29,8 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <camera_info_manager/camera_info_manager.hpp>
+#include <image_transport/image_transport.hpp>
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/bool.hpp>
@@ -50,6 +52,14 @@ class BebopDriverNode : public rclcpp::Node {
 	subscription_navigateHome;
     rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr
 	subscription_animationFlip;
+
+    std::string odom_frame_id;
+    std::string camera_frame_id;
+    std::shared_ptr<camera_info_manager::CameraInfoManager> cinfo_manager;
+    image_transport::CameraPublisher publisher_camera;
+    rclcpp::TimerBase::SharedPtr camera_timer;
+
+    void publishCamera(void);
 
    public:
     BebopDriverNode();

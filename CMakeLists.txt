@@ -19,13 +19,15 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(camera_info_manager REQUIRED)
+find_package(image_transport REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 find_package(ros2_parrot_arsdk REQUIRED)
 
 add_executable(bebop_driver src/bebop_driver_node.cpp src/bebop.cpp)
 include_directories(include)
-ament_target_dependencies(bebop_driver ros2_parrot_arsdk rclcpp)
+ament_target_dependencies(bebop_driver ros2_parrot_arsdk rclcpp std_msgs camera_info_manager image_transport)
 target_link_libraries(bebop_driver ${ARSDK_LIBS})
 target_link_directories(bebop_driver PUBLIC ${ARSDK_LIB_DIR})
 
@@ -39,6 +41,11 @@ install(TARGETS bebop_driver
 
 install(DIRECTORY launch
 	DESTINATION share/${PROJECT_NAME})
+
+install(DIRECTORY
+	config
+	DESTINATION share/${PROJECT_NAME}
+	)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
