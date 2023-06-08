@@ -26,7 +26,7 @@ find_package(image_transport REQUIRED)
 # further dependencies manually.
 find_package(ros2_parrot_arsdk REQUIRED)
 
-add_executable(bebop_driver src/bebop_driver_node.cpp src/bebop.cpp)
+add_executable(bebop_driver src/bebop_driver_node.cpp src/bebop.cpp src/video_decoder.cpp)
 include_directories(include)
 ament_target_dependencies(bebop_driver ros2_parrot_arsdk rclcpp std_msgs geometry_msgs camera_info_manager image_transport)
 target_link_libraries(bebop_driver ${ARSDK_LIBS})
