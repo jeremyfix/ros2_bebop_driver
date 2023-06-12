@@ -21,3 +21,12 @@ This work is based on the [bebop_autonomy](https://github.com/AutonomyLab/bebop_
 | TF publisher | No | |
 | Odometry publisher | No | |
 
+## Debugging
+
+If you need to debug the execution of the node, you can :
+
+```
+ros2 run --prefix 'gdb -ex run --args' ros2_bebop_driver bebop_driver --ros-args -p bebop_ip:=192.168.50.62
+```
+
+you may need to customize the drone IP.

@@ -36,7 +36,10 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
+#include <fstream>
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 
 namespace bebop_driver {
 
@@ -50,6 +53,7 @@ class VideoDecoder {
     AVPacket *p_packet_ = NULL;
     AVFrame *p_frame_ = NULL;
     SwsContext *p_sws_context_ = NULL;
+    int id = 0;
 
     bool init(void);
     void allocateBuffers(void);

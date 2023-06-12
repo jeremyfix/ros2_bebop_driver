@@ -59,7 +59,9 @@ class BebopDriverNode : public rclcpp::Node {
     std::string odom_frame_id;
     std::string camera_frame_id;
     std::shared_ptr<camera_info_manager::CameraInfoManager> cinfo_manager;
-    image_transport::CameraPublisher publisher_camera;
+
+    /* image_transport::CameraPublisher publisher_camera; */
+    image_transport::Publisher publisher_camera;
     rclcpp::TimerBase::SharedPtr camera_timer;
 
     void publishCamera(void);

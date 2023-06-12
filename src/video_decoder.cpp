@@ -1,7 +1,7 @@
 #include "ros2_bebop_driver/video_decoder.hpp"
 
 namespace bebop_driver {
-VideoDecoder::VideoDecoder() {}
+VideoDecoder::VideoDecoder() { init(); }
 VideoDecoder::~VideoDecoder() {}
 
 bool VideoDecoder::init() {
@@ -44,6 +44,7 @@ void VideoDecoder::allocateBuffers() {
 }
 
 bool VideoDecoder::decode(uint8_t* data, uint32_t size) {
+    std::cout << "Current packet size " << p_packet_->size << std::endl;
     p_packet_->size = size;
     p_packet_->data = data;
 
@@ -77,6 +78,9 @@ bool VideoDecoder::decode(uint8_t* data, uint32_t size) {
 	height = p_frame_->height;
 	allocateBuffers();
     }
+
+    std::cout << "Got width ,height of : " << width << "," << height
+	      << std::endl;
     p_sws_context_ = sws_getCachedContext(
 	p_sws_context_, p_frame_->width, p_frame_->height,
 	p_codec_context_->pix_fmt, p_frame_->width, p_frame_->height,
@@ -84,6 +88,16 @@ bool VideoDecoder::decode(uint8_t* data, uint32_t size) {
     int stride = 3 * p_frame_->width;
     sws_scale(p_sws_context_, (const uint8_t* const*)p_frame_->data,
 	      p_frame_->linesize, 0, p_frame_->height, &frame, &stride);
+
+    //
+    {
+	std::ostringstream filename;
+	filename << "toto-" << std::setw(6) << std::setfill('0') << id++
+		 << ".ppm";
+	std::ofstream outfile(filename.str());
+	outfile << "P6\n856 480\n255\n";
+	outfile.write(reinterpret_cast<char*>(frame), 856 * 480 * 3);
+    }
 
     return true;
 }

@@ -17,6 +17,10 @@ namespace bebop_driver {
 BebopDriverNode::BebopDriverNode()
     : rclcpp::Node("bebop_driver_node"), bebop(std::make_shared<Bebop>()) {
     {
+	// Make std cout/cerr unbuffered
+	// This can create performance issues
+	setvbuf(stdout, NULL, _IONBF, BUFSIZ);
+
 	auto param_desc = rcl_interfaces::msg::ParameterDescriptor{};
 	param_desc.description = "The IP of the bebop to connect to";
 
@@ -37,7 +41,7 @@ BebopDriverNode::BebopDriverNode()
 	param_desc.description = "The path to the yaml camera calibration file";
 	auto camera_calibration_file_param = this->declare_parameter(
 	    "camera_calibration_file",
-	    "package://ros2_bebop_driver/config/bebop2.yaml");
+	    "package://ros2_bebop_driver/config/bebop2_camera_calib.yaml");
 	cinfo_manager->setCameraName("bebop_front");
 	cinfo_manager->loadCameraInfo(camera_calibration_file_param);
     }
@@ -109,6 +113,14 @@ BebopDriverNode::BebopDriverNode()
     } else {
 	RCLCPP_ERROR(this->get_logger(), "Failed to start streaming");
     }
+
+    /* image_transport::ImageTransport it(*this); */
+    /* publisher_camera = it.advertise("camera/image_raw", 1); */
+
+    // TODO
+    /* publisher_camera = */
+    /* this->create_publisher<sensor_msgs::msg::Image>("camera/image_raw", 10);
+     */
 }
 
 void BebopDriverNode::publishCamera(void) {
