@@ -342,12 +342,12 @@ eARCONTROLLER_ERROR didReceiveFrameCallback(
 			"Previous frame might have been missed.");
 	}
 
-	/* if (!bebop->video_decoder_ptr_->Decode(frame)) { */
-	if (false) {  // TODO decoding logic
-	    ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Video decode failed");
+	if (!bebop->video_decoder.decode(frame->data, frame->used)) {
+	    ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG,
+			"Video decode failed or not yet available");
 	} else {
 	    bebop->is_frame_available = true;
-	    // ARSAL_PRINT(ARSAL_PRINT_INFO, LOG_TAG, "FRAME IS READY");
+	    ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Frame is ready");
 	    bebop->frame_available_condition.notify_one();
 	}
     }
