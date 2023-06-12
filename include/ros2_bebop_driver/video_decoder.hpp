@@ -64,5 +64,7 @@ class VideoDecoder {
 
     bool decode(uint8_t *data, uint32_t size);
     const uint8_t *getFrame() const;
+    unsigned int getWidth() const;
+    unsigned int getHeight() const;
 };
 }  // namespace bebop_driver

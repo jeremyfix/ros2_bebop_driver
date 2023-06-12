@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <cstdio>
+#include <sensor_msgs/image_encodings.hpp>
 
 using namespace std::chrono_literals;
 
@@ -104,6 +105,9 @@ BebopDriverNode::BebopDriverNode()
 	std::bind(&BebopDriverNode::cmdVelCallback, this,
 		  std::placeholders::_1));
 
+    // Camera
+    publisher_camera =
+	image_transport::create_camera_publisher(this, "camera/image_raw");
     bebop->startStreaming();
     if (bebop->isStreamingStarted()) {
 	// Camera info publication on a regular basis
@@ -113,14 +117,6 @@ BebopDriverNode::BebopDriverNode()
     } else {
 	RCLCPP_ERROR(this->get_logger(), "Failed to start streaming");
     }
-
-    /* image_transport::ImageTransport it(*this); */
-    /* publisher_camera = it.advertise("camera/image_raw", 1); */
-
-    // TODO
-    /* publisher_camera = */
-    /* this->create_publisher<sensor_msgs::msg::Image>("camera/image_raw", 10);
-     */
 }
 
 void BebopDriverNode::publishCamera(void) {
@@ -132,7 +128,19 @@ void BebopDriverNode::publishCamera(void) {
     camera_info_msg->header.stamp = timestamp;
     camera_info_msg->header.frame_id = camera_frame_id;
 
-    // publisher_camera.publish(image_msg, camera_info_msg);
+    sensor_msgs::msg::Image::SharedPtr img_msg =
+	std::make_shared<sensor_msgs::msg::Image>();
+
+    auto header = std::make_shared<std_msgs::msg::Header>();
+    img_msg->header.stamp = timestamp;
+    img_msg->header.frame_id = camera_frame_id;
+    this->bebop->getFrontCameraFrame(img_msg->data, img_msg->width,
+				     img_msg->height);
+    img_msg->encoding = sensor_msgs::image_encodings::BGR8;
+    /* img_msg->is_bigendian = ; TODO*/
+    img_msg->step = 3 * img_msg->width;
+
+    publisher_camera.publish(img_msg, camera_info_msg);
 }
 
 void BebopDriverNode::cmdVelCallback(

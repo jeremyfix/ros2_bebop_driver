@@ -103,5 +103,9 @@ bool VideoDecoder::decode(uint8_t* data, uint32_t size) {
 }
 
 const uint8_t* VideoDecoder::getFrame() const { return frame; }
+
+unsigned int VideoDecoder::getWidth() const { return width; }
+unsigned int VideoDecoder::getHeight() const { return height; }
+
 }  // namespace bebop_driver
 

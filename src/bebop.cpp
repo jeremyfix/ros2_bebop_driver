@@ -275,12 +275,11 @@ bool Bebop::getFrontCameraFrame(std::vector<uint8_t>& buffer, uint32_t& width,
     std::unique_lock<std::mutex> lock(frame_available_mutex);
     frame_available_condition.wait(lock,
 				   [this] { return this->is_frame_available; });
-    // TODO
-    // 1- get the height, width of the decoded frame
-    // 2- resize if necessary the buffer
-    // 3- copy the content of the decoded into buffer
-    // 4- update attributes with height and width
-    // 5- set is_frame_available to false because we took it
+    width = this->video_decoder.getWidth();
+    height = this->video_decoder.getHeight();
+    buffer.resize(3 * height * width);
+    auto frame_ptr = this->video_decoder.getFrame();
+    std::copy(frame_ptr, frame_ptr + (3 * height * width), buffer.begin());
     return true;
 }
 
