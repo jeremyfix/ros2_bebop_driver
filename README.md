@@ -6,6 +6,8 @@ If you wish, you could be using [ros1 bridge](https://github.com/ros2/ros1_bridg
 
 This is clearly alpha release with some basic functionnalities which will hopefully grow from time to time.
 
+This work is based on the [bebop_autonomy](https://github.com/AutonomyLab/bebop_autonomy) work of Mani Monajjemi and the work on [h264_image_transport](https://github.com/clydemcqueen/h264_image_transport) by Clyde McQueen.
+
 ## Features and roadmap
 
 | Feature | Status | Notes |

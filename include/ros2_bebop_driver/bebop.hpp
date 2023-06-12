@@ -42,6 +42,8 @@ extern "C" {
 #include <type_traits>
 #include <vector>
 
+#include "ros2_bebop_driver/video_decoder.hpp"
+
 namespace bebop_driver {
 
 void stateChangedCallback(eARCONTROLLER_DEVICE_STATE new_state,
@@ -77,6 +79,8 @@ class Bebop {
 
     friend eARCONTROLLER_ERROR didReceiveFrameCallback(
 	ARCONTROLLER_Frame_t* frame, void* customData);
+
+    VideoDecoder video_decoder;
 
     bool is_streaming_started = false;
 

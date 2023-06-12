@@ -4,7 +4,8 @@ Software License Agreement (BSD)
 \file      bebop.hpp
 \authors   Jeremy Fix <jeremy.fix@centralesupelec.fr>
 \copyright Copyright (c) 2022, CentraleSupélec, All rights reserved. Based on
-the work of Mani Monajjemi bebop_autonomy
+the work of Mani Monajjemi bebop_autonomy and on the work of clydemcqueen on
+h264_image_transport
 
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
@@ -29,25 +30,35 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #pragma once
+extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
+#include <libswscale/swscale.h>
+}
+
+#include <iostream>
 
 namespace bebop_driver {
 
 class VideoDecoder {
    private:
-    uint8_t* frame = NULL;
+    uint8_t *frame = NULL;
     unsigned int width = 0;
     unsigned int height = 0;
+    AVCodec *p_codec_ = NULL;
+    AVCodecContext *p_codec_context_ = NULL;
+    AVPacket *p_packet_ = NULL;
+    AVFrame *p_frame_ = NULL;
+    SwsContext *p_sws_context_ = NULL;
 
-    void init(void);
+    bool init(void);
     void allocateBuffers(void);
 
    public:
     VideoDecoder();
     ~VideoDecoder();
 
-    void decode(const uint8_t* data, uint32_t size);
-    const uint8_t* getFrame() const;
+    bool decode(uint8_t *data, uint32_t size);
+    const uint8_t *getFrame() const;
 };
 }  // namespace bebop_driver
