@@ -280,6 +280,7 @@ bool Bebop::getFrontCameraFrame(std::vector<uint8_t>& buffer, uint32_t& width,
     buffer.resize(3 * height * width);
     auto frame_ptr = this->video_decoder.getFrame();
     std::copy(frame_ptr, frame_ptr + (3 * height * width), buffer.begin());
+    is_frame_available = false;
     return true;
 }
 
