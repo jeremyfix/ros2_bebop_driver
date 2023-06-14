@@ -44,7 +44,6 @@ void VideoDecoder::allocateBuffers() {
 }
 
 bool VideoDecoder::decode(uint8_t* data, uint32_t size) {
-    std::cout << "Current packet size " << p_packet_->size << std::endl;
     p_packet_->size = size;
     p_packet_->data = data;
 
@@ -79,8 +78,6 @@ bool VideoDecoder::decode(uint8_t* data, uint32_t size) {
 	allocateBuffers();
     }
 
-    std::cout << "Got width ,height of : " << width << "," << height
-	      << std::endl;
     p_sws_context_ = sws_getCachedContext(
 	p_sws_context_, p_frame_->width, p_frame_->height,
 	p_codec_context_->pix_fmt, p_frame_->width, p_frame_->height,
