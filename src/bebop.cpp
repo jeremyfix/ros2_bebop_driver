@@ -316,12 +316,12 @@ void commandReceivedCallback(
 eARCONTROLLER_ERROR decoderConfigCallback(
     [[maybe_unused]] ARCONTROLLER_Stream_Codec_t codec,
     [[maybe_unused]] void* customData) {
-    // TODO:
-
-    uint8_t* sps_buffer_ptr = codec.parameters.h264parameters.spsBuffer;
-    uint32_t sps_buffer_size = codec.parameters.h264parameters.spsSize;
-    uint8_t* pps_buffer_ptr = codec.parameters.h264parameters.ppsBuffer;
-    uint32_t pps_buffer_size = codec.parameters.h264parameters.ppsSize;
+    // TODO: What is the purpose of these, do we need to provide them to the
+    // video decoder ?
+    /* uint8_t* sps_buffer_ptr = codec.parameters.h264parameters.spsBuffer; */
+    /* uint32_t sps_buffer_size = codec.parameters.h264parameters.spsSize; */
+    /* uint8_t* pps_buffer_ptr = codec.parameters.h264parameters.ppsBuffer; */
+    /* uint32_t pps_buffer_size = codec.parameters.h264parameters.ppsSize; */
 
     return ARCONTROLLER_OK;
 }
