@@ -14,6 +14,7 @@ This work is based on the [bebop_autonomy](https://github.com/AutonomyLab/bebop_
 | --- | --- | --- |
 | SDK Version | 3.14.0 | Depends on [ros2_parrot_arsdk](https://github.com/jeremyfix/ros2_parrot_arsdk) |
 | Support for Parrot Bebop 2 | Yes | |
+| Support for Parrot Bebop 1 | No | Should not be too difficult to implement but I cannot test | 
 | Core piloting (takeoff, land, move, ..) | Yes | |
 | H264 video decoding | Yes | |
 | ROS Camera interface | Yes | |
