@@ -15,8 +15,8 @@ This work is based on the [bebop_autonomy](https://github.com/AutonomyLab/bebop_
 | SDK Version | 3.14.0 | Depends on [ros2_parrot_arsdk](https://github.com/jeremyfix/ros2_parrot_arsdk) |
 | Support for Parrot Bebop 2 | Yes | |
 | Core piloting (takeoff, land, move, ..) | Yes | |
-| H264 video decoding | No | |
-| ROS Camera interface | No | |
+| H264 video decoding | Yes | |
+| ROS Camera interface | Yes | |
 | Publish bebop states as ROS topics | No | | 
 | TF publisher | No | |
 | Odometry publisher | No | |
