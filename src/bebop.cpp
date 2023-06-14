@@ -54,7 +54,7 @@ Bebop::~Bebop() {
 
 void Bebop::connect(std::string bebop_ip, unsigned short bebop_port) {
     eARDISCOVERY_ERROR errorDiscovery = ARDISCOVERY_OK;
-    ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- init discovey device ... ");
+    ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- init discovey device ...");
     ARDISCOVERY_Device_t* device = ARDISCOVERY_Device_New(&errorDiscovery);
     throwOnDiscError(errorDiscovery, "Discovery error");
 
@@ -92,7 +92,7 @@ void Bebop::connect(std::string bebop_ip, unsigned short bebop_port) {
     ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- set Video callback ... ");
     error = ARCONTROLLER_Device_SetVideoStreamCallbacks(
 	deviceController, decoderConfigCallback, didReceiveFrameCallback, NULL,
-	NULL);
+	reinterpret_cast<void*>(this));
     if (error != ARCONTROLLER_OK) {
 	ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error: %s",
 		    ARCONTROLLER_Error_ToString(error));
@@ -117,9 +117,16 @@ void Bebop::connect(std::string bebop_ip, unsigned short bebop_port) {
     throwOnCtrlError(deviceController->aRDrone3->sendMediaStreamingVideoEnable(
 			 deviceController->aRDrone3, 0),
 		     "Stopping video stream failed.");
+    is_streaming_started = false;
     // Congratulation: we are connected, the callbacks are setup and the
     // video stream enabled
     is_connected = true;
+}
+
+bool Bebop::isConnected() const { return is_connected; }
+
+void Bebop::disconnect(void) {
+    // TODO
 }
 
 void Bebop::takeOff(void) {
@@ -217,19 +224,77 @@ void Bebop::moveCamera(double tilt, double pan) {
 		     "Camera move failed");
 }
 
+void Bebop::startStreaming(void) {
+    if (is_streaming_started) {
+	ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG,
+		    "Video streaming is already started ...");
+	return;
+    }
+    try {
+	throwOnInternalError("Starting video stream failed");
+	// Start video streaming
+	throwOnCtrlError(
+	    deviceController->aRDrone3->sendMediaStreamingVideoEnable(
+		deviceController->aRDrone3, 1),
+	    "Starting video stream failed.");
+	is_streaming_started = true;
+	ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "Video streaming started ...");
+    } catch (const std::runtime_error& e) {
+	ARSAL_PRINT(ARSAL_PRINT_INFO, TAG,
+		    "Failed to start video streaming ...");
+	is_streaming_started = false;
+	throw e;
+    }
+}
+void Bebop::stopStreaming(void) {
+    if (!is_streaming_started) {
+	ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG,
+		    "Video streaming was not started ...");
+	return;
+    }
+    try {
+	throwOnInternalError("Stopping video stream failed");
+	// Stop video streaming
+	throwOnCtrlError(
+	    deviceController->aRDrone3->sendMediaStreamingVideoEnable(
+		deviceController->aRDrone3, 0),
+	    "Stopping video stream failed.");
+	is_streaming_started = false;
+    } catch (const std::runtime_error& e) {
+	ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG,
+		    "Failed to stop video streaming ...");
+    }
+}
+bool Bebop::isStreamingStarted(void) const { return is_streaming_started; }
+
+bool Bebop::getFrontCameraFrame(std::vector<uint8_t>& buffer, uint32_t& width,
+				uint32_t& height) {
+    // This method is called from the ros node
+    // publishCamera timer which is in a separate thread than the main thread
+    // which may be in charge of calling didReceiveFrameCallback
+    std::unique_lock<std::mutex> lock(frame_available_mutex);
+    frame_available_condition.wait(lock,
+				   [this] { return this->is_frame_available; });
+    width = this->video_decoder.getWidth();
+    height = this->video_decoder.getHeight();
+    buffer.resize(3 * height * width);
+    auto frame_ptr = this->video_decoder.getFrame();
+    std::copy(frame_ptr, frame_ptr + (3 * height * width), buffer.begin());
+    is_frame_available = false;
+    return true;
+}
+
 void stateChangedCallback(eARCONTROLLER_DEVICE_STATE new_state,
 			  [[maybe_unused]] eARCONTROLLER_ERROR error,
 			  void* customData) {
-    ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "    - stateChanged newState: %d.....",
-		new_state);
-    Bebop* bebop_ptr = static_cast<Bebop*>(customData);
+    Bebop* bebop = static_cast<Bebop*>(customData);
     switch (new_state) {
 	case ARCONTROLLER_DEVICE_STATE_STOPPED:
-	    ARSAL_Sem_Post(&(bebop_ptr->stateSem));
+	    ARSAL_Sem_Post(&(bebop->stateSem));
 	    break;
 
 	case ARCONTROLLER_DEVICE_STATE_RUNNING:
-	    ARSAL_Sem_Post(&(bebop_ptr->stateSem));
+	    ARSAL_Sem_Post(&(bebop->stateSem));
 	    break;
 	case ARCONTROLLER_DEVICE_STATE_STARTING:
 	case ARCONTROLLER_DEVICE_STATE_PAUSED:
@@ -244,20 +309,48 @@ void commandReceivedCallback(
     [[maybe_unused]] eARCONTROLLER_DICTIONARY_KEY cmd_key,
     [[maybe_unused]] ARCONTROLLER_DICTIONARY_ELEMENT_t* element_dict_ptr,
     [[maybe_unused]] void* customData) {
-    /* Bebop* bebop_ptr = static_cast<Bebop*>(customData); */
+    /* Bebop* bebop = static_cast<Bebop*>(customData); */
     // TODO: to be done when the generation from XML is done
 }
 
 eARCONTROLLER_ERROR decoderConfigCallback(
     [[maybe_unused]] ARCONTROLLER_Stream_Codec_t codec,
     [[maybe_unused]] void* customData) {
-    // TODO:
+    // TODO: What is the purpose of these, do we need to provide them to the
+    // video decoder ?
+    /* uint8_t* sps_buffer_ptr = codec.parameters.h264parameters.spsBuffer; */
+    /* uint32_t sps_buffer_size = codec.parameters.h264parameters.spsSize; */
+    /* uint8_t* pps_buffer_ptr = codec.parameters.h264parameters.ppsBuffer; */
+    /* uint32_t pps_buffer_size = codec.parameters.h264parameters.ppsSize; */
+
     return ARCONTROLLER_OK;
 }
 eARCONTROLLER_ERROR didReceiveFrameCallback(
-    [[maybe_unused]] ARCONTROLLER_Frame_t* frame,
-    [[maybe_unused]] void* customData) {
-    // TODO:
+    [[maybe_unused]] ARCONTROLLER_Frame_t* frame, void* customData) {
+    if (!frame) {
+	ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "Received frame is NULL");
+	return ARCONTROLLER_ERROR_NO_VIDEO;
+    }
+
+    Bebop* bebop = static_cast<Bebop*>(customData);
+
+    if (!bebop->isConnected()) return ARCONTROLLER_ERROR;
+    {
+	std::lock_guard<std::mutex> lock(bebop->frame_available_mutex);
+	// It happens the previous frame has not been published before
+	// a new is available
+	/* if (bebop->is_frame_available) */
+	/*     std::cerr << "Previous frame might have been missed." <<
+	 * std::endl; */
+
+	if (!bebop->video_decoder.decode(frame->data, frame->used)) {
+	    std::cerr << "Video decode failed or not yet available"
+		      << std::endl;
+	} else {
+	    bebop->is_frame_available = true;
+	    bebop->frame_available_condition.notify_one();
+	}
+    }
     return ARCONTROLLER_OK;
 }
 

@@ -6,6 +6,8 @@ If you wish, you could be using [ros1 bridge](https://github.com/ros2/ros1_bridg
 
 This is clearly alpha release with some basic functionnalities which will hopefully grow from time to time.
 
+This work is based on the [bebop_autonomy](https://github.com/AutonomyLab/bebop_autonomy) work of Mani Monajjemi and the work on [h264_image_transport](https://github.com/clydemcqueen/h264_image_transport) by Clyde McQueen.
+
 ## Features and roadmap
 
 | Feature | Status | Notes |
@@ -19,3 +21,12 @@ This is clearly alpha release with some basic functionnalities which will hopefu
 | TF publisher | No | |
 | Odometry publisher | No | |
 
+## Debugging
+
+If you need to debug the execution of the node, you can :
+
+```
+ros2 run --prefix 'gdb -ex run --args' ros2_bebop_driver bebop_driver --ros-args -p bebop_ip:=192.168.50.62
+```
+
+you may need to customize the drone IP.

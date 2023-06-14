@@ -15,6 +15,9 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+# If we debug
+add_compile_options(-g)
+
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -26,11 +29,21 @@ find_package(image_transport REQUIRED)
 # further dependencies manually.
 find_package(ros2_parrot_arsdk REQUIRED)
 
-add_executable(bebop_driver src/bebop_driver_node.cpp src/bebop.cpp)
+find_package(PkgConfig)
+pkg_check_modules(AVDEVICE REQUIRED libavdevice>=58)
+pkg_check_modules(AVFORMAT REQUIRED libavformat>=58)
+pkg_check_modules(AVCODEC REQUIRED libavcodec>=58)
+pkg_check_modules(AVUTIL REQUIRED libavutil>=56)
+pkg_check_modules(SWSCALE REQUIRED libswscale>=5)
+
+
+add_executable(bebop_driver src/bebop_driver_node.cpp src/bebop.cpp src/video_decoder.cpp)
 include_directories(include)
 ament_target_dependencies(bebop_driver ros2_parrot_arsdk rclcpp std_msgs geometry_msgs camera_info_manager image_transport)
 target_link_libraries(bebop_driver ${ARSDK_LIBS})
 target_link_directories(bebop_driver PUBLIC ${ARSDK_LIB_DIR})
+target_link_libraries(bebop_driver ${AVDEVICE_LIBRARIES} ${AVFORMAT_LIBRARIES} ${AVCODEC_LIBRARIES} ${AVUTIL_LIBRARIES} ${SWSCALE_LIBRARIES})
+message("${AVDEVICE_LIBRARIES};${AVFORMAT_LIBRARIES};${AVCODEC_LIBRARIES};${AVUTIL_LIBRARIES};${SWSCALE_LIBRARIES}")
 
 
 target_include_directories(bebop_driver PUBLIC

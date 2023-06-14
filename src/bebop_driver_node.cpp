@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <cstdio>
+#include <sensor_msgs/image_encodings.hpp>
 
 using namespace std::chrono_literals;
 
@@ -17,6 +18,10 @@ namespace bebop_driver {
 BebopDriverNode::BebopDriverNode()
     : rclcpp::Node("bebop_driver_node"), bebop(std::make_shared<Bebop>()) {
     {
+	// Make std cout/cerr unbuffered
+	// This can create performance issues
+	setvbuf(stdout, NULL, _IONBF, BUFSIZ);
+
 	auto param_desc = rcl_interfaces::msg::ParameterDescriptor{};
 	param_desc.description = "The IP of the bebop to connect to";
 
@@ -37,7 +42,7 @@ BebopDriverNode::BebopDriverNode()
 	param_desc.description = "The path to the yaml camera calibration file";
 	auto camera_calibration_file_param = this->declare_parameter(
 	    "camera_calibration_file",
-	    "package://ros2_bebop_driver/config/bebop2.yaml");
+	    "package://ros2_bebop_driver/config/bebop2_camera_calib.yaml");
 	cinfo_manager->setCameraName("bebop_front");
 	cinfo_manager->loadCameraInfo(camera_calibration_file_param);
     }
@@ -100,9 +105,18 @@ BebopDriverNode::BebopDriverNode()
 	std::bind(&BebopDriverNode::cmdVelCallback, this,
 		  std::placeholders::_1));
 
-    // Camera info publication on a regular basis
-    camera_timer = this->create_wall_timer(
-	30ms, std::bind(&BebopDriverNode::publishCamera, this));
+    // Camera
+    publisher_camera =
+	image_transport::create_camera_publisher(this, "camera/image_raw");
+    bebop->startStreaming();
+    if (bebop->isStreamingStarted()) {
+	// Camera info publication on a regular basis
+	camera_timer = this->create_wall_timer(
+	    30ms, std::bind(&BebopDriverNode::publishCamera, this));
+	RCLCPP_INFO(this->get_logger(), "Streaming is started");
+    } else {
+	RCLCPP_ERROR(this->get_logger(), "Failed to start streaming");
+    }
 }
 
 void BebopDriverNode::publishCamera(void) {
@@ -114,7 +128,19 @@ void BebopDriverNode::publishCamera(void) {
     camera_info_msg->header.stamp = timestamp;
     camera_info_msg->header.frame_id = camera_frame_id;
 
-    // publisher_camera.publish(image_msg, camera_info_msg);
+    sensor_msgs::msg::Image::SharedPtr img_msg =
+	std::make_shared<sensor_msgs::msg::Image>();
+
+    auto header = std::make_shared<std_msgs::msg::Header>();
+    img_msg->header.stamp = timestamp;
+    img_msg->header.frame_id = camera_frame_id;
+    this->bebop->getFrontCameraFrame(img_msg->data, img_msg->width,
+				     img_msg->height);
+    img_msg->encoding = sensor_msgs::image_encodings::BGR8;
+    /* img_msg->is_bigendian = ; TODO*/
+    img_msg->step = 3 * img_msg->width;
+
+    publisher_camera.publish(img_msg, camera_info_msg);
 }
 
 void BebopDriverNode::cmdVelCallback(

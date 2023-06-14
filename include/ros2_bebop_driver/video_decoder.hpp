@@ -1,10 +1,11 @@
 /**
 Software License Agreement (BSD)
 
-\file      bebop_driver_node.hpp
+\file      bebop.hpp
 \authors   Jeremy Fix <jeremy.fix@centralesupelec.fr>
 \copyright Copyright (c) 2022, CentraleSupélec, All rights reserved. Based on
-the work of Mani Monajjemi bebop_autonomy
+the work of Mani Monajjemi bebop_autonomy and on the work of clydemcqueen on
+h264_image_transport
 
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
@@ -28,45 +29,42 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+#pragma once
+extern "C" {
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libswscale/swscale.h>
+}
 
-#include <camera_info_manager/camera_info_manager.hpp>
-#include <geometry_msgs/msg/twist.hpp>
-#include <image_transport/image_transport.hpp>
-#include <memory>
-#include <rclcpp/rclcpp.hpp>
-#include <std_msgs/msg/bool.hpp>
-#include <std_msgs/msg/empty.hpp>
-#include <std_msgs/msg/u_int8.hpp>
-
-#include "ros2_bebop_driver/bebop.hpp"
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
 
 namespace bebop_driver {
-class BebopDriverNode : public rclcpp::Node {
+
+class VideoDecoder {
    private:
-    std::shared_ptr<Bebop> bebop;
-    rclcpp::Subscription<std_msgs::msg::Empty>::SharedPtr subscription_takeoff;
-    rclcpp::Subscription<std_msgs::msg::Empty>::SharedPtr subscription_land;
-    rclcpp::Subscription<std_msgs::msg::Empty>::SharedPtr
-	subscription_emergency;
-    rclcpp::Subscription<std_msgs::msg::Empty>::SharedPtr subscription_flattrim;
-    rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr
-	subscription_navigateHome;
-    rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr
-	subscription_animationFlip;
-    rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr
-	subscription_cmdVel;
+    uint8_t *frame = NULL;
+    unsigned int width = 0;
+    unsigned int height = 0;
+    AVCodec *p_codec_ = NULL;
+    AVCodecContext *p_codec_context_ = NULL;
+    AVPacket *p_packet_ = NULL;
+    AVFrame *p_frame_ = NULL;
+    SwsContext *p_sws_context_ = NULL;
+    int id = 0;
 
-    std::string odom_frame_id;
-    std::string camera_frame_id;
-    std::shared_ptr<camera_info_manager::CameraInfoManager> cinfo_manager;
-
-    image_transport::CameraPublisher publisher_camera;
-    rclcpp::TimerBase::SharedPtr camera_timer;
-
-    void publishCamera(void);
-    void cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr msg);
+    bool init(void);
+    void allocateBuffers(void);
 
    public:
-    BebopDriverNode();
+    VideoDecoder();
+    ~VideoDecoder();
+
+    bool decode(uint8_t *data, uint32_t size);
+    const uint8_t *getFrame() const;
+    unsigned int getWidth() const;
+    unsigned int getHeight() const;
 };
 }  // namespace bebop_driver
