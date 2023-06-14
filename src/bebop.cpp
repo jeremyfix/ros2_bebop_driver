@@ -337,17 +337,17 @@ eARCONTROLLER_ERROR didReceiveFrameCallback(
     if (!bebop->isConnected()) return ARCONTROLLER_ERROR;
     {
 	std::lock_guard<std::mutex> lock(bebop->frame_available_mutex);
-	if (bebop->is_frame_available) {
-	    std::cerr << "Previous frame might have been missed." << std::endl;
-	}
+	// It happens the previous frame has not been published before
+	// a new is available
+	/* if (bebop->is_frame_available) */
+	/*     std::cerr << "Previous frame might have been missed." <<
+	 * std::endl; */
 
-	std::cout << "Decoding packet" << std::endl;
 	if (!bebop->video_decoder.decode(frame->data, frame->used)) {
 	    std::cerr << "Video decode failed or not yet available"
 		      << std::endl;
 	} else {
 	    bebop->is_frame_available = true;
-	    std::cout << "Frame is ready" << std::endl;
 	    bebop->frame_available_condition.notify_one();
 	}
     }

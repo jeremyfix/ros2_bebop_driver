@@ -85,7 +85,6 @@ class Bebop {
     bool is_streaming_started = false;
 
     bool is_frame_available = false;  // Shared variable
-				      // frame : SharedVariable
     std::mutex frame_available_mutex;
     std::condition_variable frame_available_condition;
 
