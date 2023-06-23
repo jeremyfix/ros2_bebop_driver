@@ -45,27 +45,27 @@ using time_point = std::chrono::time_point<clock_type>;
 class Ardrone3PilotingStateAttitudeChanged {
    private:
     ARCONTROLLER_DICTIONARY_ARG_t* arg;
-    std::mutex mutex;
+    mutable std::mutex mutex;
     std::tuple<float, float, float> roll_pitch_yaw;
     time_point time;  // The time of the last update
     const std::string frame_id = "base_link";
 
    public:
     void set(const ARCONTROLLER_DICTIONARY_ARG_t* arguments);
-    std::tuple<std::string, time_point, float, float, float> get(void);
+    std::tuple<std::string, time_point, float, float, float> get(void) const;
 };
 
 class Ardrone3PilotingStateSpeedChanged {
    private:
     ARCONTROLLER_DICTIONARY_ARG_t* arg;
-    std::mutex mutex;
+    mutable std::mutex mutex;
     std::tuple<float, float, float> speedx_speedy_speedz;
     time_point time;  // The time of the last update
     const std::string frame_id = "base_link";
 
    public:
     void set(const ARCONTROLLER_DICTIONARY_ARG_t* arguments);
-    std::tuple<std::string, time_point, float, float, float> get(void);
+    std::tuple<std::string, time_point, float, float, float> get(void) const;
 };
 
 }  // namespace bebop_driver

@@ -63,7 +63,7 @@ void Ardrone3PilotingStateAttitudeChanged::set(
 }
 
 std::tuple<std::string, time_point, float, float, float>
-Ardrone3PilotingStateAttitudeChanged ::get(void) {
+Ardrone3PilotingStateAttitudeChanged ::get(void) const {
     std::unique_lock<std::mutex> lock(mutex);
 
     return std::tuple_cat(std::make_tuple(frame_id, time), roll_pitch_yaw);
@@ -95,7 +95,7 @@ void Ardrone3PilotingStateSpeedChanged::set(
 }
 
 std::tuple<std::string, time_point, float, float, float>
-Ardrone3PilotingStateSpeedChanged ::get(void) {
+Ardrone3PilotingStateSpeedChanged ::get(void) const {
     std::unique_lock<std::mutex> lock(mutex);
 
     return std::tuple_cat(std::make_tuple(frame_id, time),
