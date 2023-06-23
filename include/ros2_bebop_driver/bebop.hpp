@@ -42,6 +42,7 @@ extern "C" {
 #include <type_traits>
 #include <vector>
 
+#include "ros2_bebop_driver/ardrone3_state_callbacks.hpp"
 #include "ros2_bebop_driver/video_decoder.hpp"
 
 namespace bebop_driver {
@@ -87,6 +88,10 @@ class Bebop {
     bool is_frame_available = false;  // Shared variable
     std::mutex frame_available_mutex;
     std::condition_variable frame_available_condition;
+
+    Ardrone3PilotingStateAttitudeChanged
+	ardrone3_piloting_state_attitude_changed;
+    Ardrone3PilotingStateSpeedChanged ardrone3_piloting_state_speed_changed;
 
    public:
     Bebop();

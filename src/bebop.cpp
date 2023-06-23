@@ -306,11 +306,23 @@ void stateChangedCallback(eARCONTROLLER_DEVICE_STATE new_state,
 }
 
 void commandReceivedCallback(
-    [[maybe_unused]] eARCONTROLLER_DICTIONARY_KEY cmd_key,
+    eARCONTROLLER_DICTIONARY_KEY cmd_key,
     [[maybe_unused]] ARCONTROLLER_DICTIONARY_ELEMENT_t* element_dict_ptr,
-    [[maybe_unused]] void* customData) {
-    /* Bebop* bebop = static_cast<Bebop*>(customData); */
+    void* customData) {
+    Bebop* bebop = static_cast<Bebop*>(customData);
     // TODO: to be done when the generation from XML is done
+    switch (cmd_key) {
+	case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_SPEEDCHANGED:
+	    bebop->ardrone3_piloting_state_speed_changed.set(
+		element_dict_ptr->arguments);
+	    break;
+	case ARCONTROLLER_DICTIONARY_KEY_ARDRONE3_PILOTINGSTATE_ATTITUDECHANGED:
+	    bebop->ardrone3_piloting_state_attitude_changed.set(
+		element_dict_ptr->arguments);
+	    break;
+	default:
+	    break;
+    }
 }
 
 eARCONTROLLER_ERROR decoderConfigCallback(
