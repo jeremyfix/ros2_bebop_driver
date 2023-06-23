@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <cstdio>
+#include <nav_msgs/msg/odometry.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 
 using namespace std::chrono_literals;
@@ -117,6 +118,12 @@ BebopDriverNode::BebopDriverNode()
     } else {
 	RCLCPP_ERROR(this->get_logger(), "Failed to start streaming");
     }
+
+    // Odometry: published at 15Hz
+    publisher_odometry =
+	this->create_publisher<nav_msgs::msg::Odometry>("odom", 10);
+    odom_timer = this->create_wall_timer(
+	66ms, std::bind(&BebopDriverNode::publishOdometry, this));
 }
 
 void BebopDriverNode::publishCamera(void) {
@@ -143,6 +150,28 @@ void BebopDriverNode::publishCamera(void) {
     publisher_camera.publish(img_msg, camera_info_msg);
 }
 
+void BebopDriverNode::publishOdometry(void) {
+    auto message = nav_msgs::msg::Odometry();
+    message.header.stamp = this->get_clock()->now();
+    message.header.frame_id = odom_frame_id;
+    message.child_frame_id = "base_link";
+
+    // The position and orientation
+    message.pose.pose.position.x = 0.0;
+    message.pose.pose.position.y = 0.0;
+    message.pose.pose.position.z = 0.0;
+    /* message.pose.pose.orientation = {0.0, 0.0, 0.0}; */
+    /* message.pose.covariance = ; */
+
+    // The velocities
+    message.twist.twist.linear.x = 0.0;
+    message.twist.twist.linear.y = 0.0;
+    message.twist.twist.linear.z = 0.0;
+    /* message.twist.twist.angular = {0.0, 0.0, 0.0}; */
+    /* message.twist.covariance = ; */
+
+    publisher_odometry->publish(message);
+}
 void BebopDriverNode::cmdVelCallback(
     const geometry_msgs::msg::Twist::SharedPtr msg) {
     double roll = msg->linear.y;
