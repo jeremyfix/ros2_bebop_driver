@@ -156,6 +156,21 @@ void BebopDriverNode::publishOdometry(void) {
     message.header.frame_id = odom_frame_id;
     message.child_frame_id = "base_link";
 
+    // Reads the values received from the callback
+    auto [speed_frame_id, speed_time, beb_vx_enu, beb_vy_enu, beb_vz_enu] =
+	bebop->getArdrone3PilotingStateAttitude();
+    auto [attitude_frame_id, attitude_time, beb_roll, beb_pitch, beb_yaw] =
+	bebop->getArdrone3PilotingStateSpeed();
+
+    beb_vy_enu = -beb_vy_enu;
+    beb_vz_enu = -beb_vz_enu;
+    beb_pitch = -beb_pitch;
+    beb_yaw = -beb_yaw;
+
+    auto beb_vx_m = cos(beb_yaw) * beb_vx_enu + sin(beb_yaw) * beb_vy_enu;
+    auto beb_vy_m = -sin(beb_yaw) * beb_vx_enu + cos(beb_yaw) * beb_vy_enu;
+    auto beb_vz_m = beb_vz_enu;
+
     // The position and orientation
     message.pose.pose.position.x = 0.0;
     message.pose.pose.position.y = 0.0;
@@ -164,9 +179,9 @@ void BebopDriverNode::publishOdometry(void) {
     /* message.pose.covariance = ; */
 
     // The velocities
-    message.twist.twist.linear.x = 0.0;
-    message.twist.twist.linear.y = 0.0;
-    message.twist.twist.linear.z = 0.0;
+    message.twist.twist.linear.x = beb_vx_m;
+    message.twist.twist.linear.y = beb_vy_m;
+    message.twist.twist.linear.z = beb_vz_m;
     /* message.twist.twist.angular = {0.0, 0.0, 0.0}; */
     /* message.twist.covariance = ; */
 

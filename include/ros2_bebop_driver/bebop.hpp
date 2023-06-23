@@ -115,6 +115,13 @@ class Bebop {
     bool getFrontCameraFrame(std::vector<uint8_t>& buffer, uint32_t& width,
 			     uint32_t& height);
 
+    auto getArdrone3PilotingStateAttitude() {
+	return ardrone3_piloting_state_attitude_changed.get();
+    };
+    auto getArdrone3PilotingStateSpeed() {
+	return ardrone3_piloting_state_speed_changed.get();
+    };
+
     void throwOnInternalError(const std::string& message);
     void throwOnCtrlError(const eARCONTROLLER_ERROR& error,
 			  const std::string& message);
