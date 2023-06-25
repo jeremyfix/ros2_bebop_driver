@@ -1,7 +1,13 @@
 #include "ros2_bebop_driver/bebop_driver_node.hpp"
 
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/LinearMath/Vector3.h>
+#include <tf2/convert.h>
+
 #include <chrono>
 #include <cstdio>
+#include <geometry_msgs/msg/point.hpp>
+#include <geometry_msgs/msg/vector3.hpp>
 #include <nav_msgs/msg/odometry.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 
@@ -17,7 +23,9 @@ namespace bebop_driver {
 	});
 
 BebopDriverNode::BebopDriverNode()
-    : rclcpp::Node("bebop_driver_node"), bebop(std::make_shared<Bebop>()) {
+    : rclcpp::Node("bebop_driver_node"),
+      bebop(std::make_shared<Bebop>()),
+      last_odom_time({}) {
     {
 	// Make std cout/cerr unbuffered
 	// This can create performance issues
@@ -119,6 +127,8 @@ BebopDriverNode::BebopDriverNode()
 	RCLCPP_ERROR(this->get_logger(), "Failed to start streaming");
     }
 
+    tf_broadcaster = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
+
     // Odometry: published at 15Hz
     publisher_odometry =
 	this->create_publisher<nav_msgs::msg::Odometry>("odom", 10);
@@ -151,16 +161,22 @@ void BebopDriverNode::publishCamera(void) {
 }
 
 void BebopDriverNode::publishOdometry(void) {
-    auto message = nav_msgs::msg::Odometry();
-    message.header.stamp = this->get_clock()->now();
-    message.header.frame_id = odom_frame_id;
-    message.child_frame_id = "base_link";
+    if (!last_odom_time) {
+	last_odom_time = this->get_clock()->now();
+	return;
+    }
 
     // Reads the values received from the callback
     auto [speed_frame_id, speed_time, beb_vx_enu, beb_vy_enu, beb_vz_enu] =
 	bebop->getArdrone3PilotingStateAttitude();
     auto [attitude_frame_id, attitude_time, beb_roll, beb_pitch, beb_yaw] =
 	bebop->getArdrone3PilotingStateSpeed();
+
+    auto time = std::max(speed_time, attitude_time).time_since_epoch();
+    auto ros_stamp = rclcpp::Time(
+	std::chrono::duration_cast<std::chrono::seconds>(time).count(),
+	std::chrono::duration_cast<std::chrono::nanoseconds>(time).count() %
+	    1000000000UL);
 
     beb_vy_enu = -beb_vy_enu;
     beb_vz_enu = -beb_vz_enu;
@@ -171,22 +187,50 @@ void BebopDriverNode::publishOdometry(void) {
     auto beb_vy_m = -sin(beb_yaw) * beb_vx_enu + cos(beb_yaw) * beb_vy_enu;
     auto beb_vz_m = beb_vz_enu;
 
+    // Update the TF message content
+    tf_odom_to_base.header.stamp = ros_stamp;
+    tf_odom_to_base.header.frame_id = odom_frame_id;
+    tf_odom_to_base.child_frame_id = "base_link";
+
+    auto dt = (this->get_clock()->now() - *last_odom_time).seconds();
+    tf_odom_to_base.transform.translation.x += beb_vx_enu * dt;
+    tf_odom_to_base.transform.translation.y += beb_vy_enu * dt;
+    tf_odom_to_base.transform.translation.z += beb_vz_enu * dt;
+
+    tf2::Quaternion q;
+    q.setRPY(beb_roll, beb_pitch, beb_yaw);
+    tf_odom_to_base.transform.rotation.x = q.x();
+    tf_odom_to_base.transform.rotation.y = q.y();
+    tf_odom_to_base.transform.rotation.z = q.z();
+    tf_odom_to_base.transform.rotation.w = q.w();
+
+    // Broadcast the TF
+    tf_broadcaster->sendTransform(tf_odom_to_base);
+
+    auto odom_message = nav_msgs::msg::Odometry();
+    odom_message.header.stamp = ros_stamp;
+    odom_message.header.frame_id = odom_frame_id;
+    odom_message.child_frame_id = "base_link";
+
     // The position and orientation
-    message.pose.pose.position.x = 0.0;
-    message.pose.pose.position.y = 0.0;
-    message.pose.pose.position.z = 0.0;
-    /* message.pose.pose.orientation = {0.0, 0.0, 0.0}; */
-    /* message.pose.covariance = ; */
+    odom_message.pose.pose.position.x = tf_odom_to_base.transform.translation.x;
+    odom_message.pose.pose.position.y = tf_odom_to_base.transform.translation.y;
+    odom_message.pose.pose.position.z = tf_odom_to_base.transform.translation.z;
+    tf2::convert(tf_odom_to_base.transform.rotation,
+		 odom_message.pose.pose.orientation);
+    /*TODO odom_message.pose.covariance = ; */
 
     // The velocities
-    message.twist.twist.linear.x = beb_vx_m;
-    message.twist.twist.linear.y = beb_vy_m;
-    message.twist.twist.linear.z = beb_vz_m;
-    /* message.twist.twist.angular = {0.0, 0.0, 0.0}; */
-    /* message.twist.covariance = ; */
+    odom_message.twist.twist.linear.x = beb_vx_m;
+    odom_message.twist.twist.linear.y = beb_vy_m;
+    odom_message.twist.twist.linear.z = beb_vz_m;
+    /*TODO odom_message.twist.twist.angular = {0.0, 0.0, 0.0}; */
+    /*TODO odom_message.twist.covariance = ; */
 
-    publisher_odometry->publish(message);
+    publisher_odometry->publish(odom_message);
+    last_odom_time = ros_stamp;
 }
+
 void BebopDriverNode::cmdVelCallback(
     const geometry_msgs::msg::Twist::SharedPtr msg) {
     double roll = msg->linear.y;

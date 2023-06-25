@@ -29,18 +29,21 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <tf2_ros/transform_broadcaster.h>
+
 #include <camera_info_manager/camera_info_manager.hpp>
+#include <geometry_msgs/msg/transform_stamped.hpp>
 #include <geometry_msgs/msg/twist.hpp>
 #include <image_transport/image_transport.hpp>
 #include <memory>
 #include <nav_msgs/msg/odometry.hpp>
+#include <optional>
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/bool.hpp>
 #include <std_msgs/msg/empty.hpp>
 #include <std_msgs/msg/u_int8.hpp>
 
 #include "ros2_bebop_driver/bebop.hpp"
-
 namespace bebop_driver {
 class BebopDriverNode : public rclcpp::Node {
    private:
@@ -64,6 +67,9 @@ class BebopDriverNode : public rclcpp::Node {
     rclcpp::TimerBase::SharedPtr camera_timer;
 
     std::string odom_frame_id;
+    std::optional<rclcpp::Time> last_odom_time;
+    geometry_msgs::msg::TransformStamped tf_odom_to_base;
+    std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster;
     rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr publisher_odometry;
     rclcpp::TimerBase::SharedPtr odom_timer;
 

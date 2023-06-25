@@ -26,6 +26,8 @@ find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(camera_info_manager REQUIRED)
 find_package(image_transport REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_ros REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 find_package(ros2_parrot_arsdk REQUIRED)
@@ -40,7 +42,7 @@ pkg_check_modules(SWSCALE REQUIRED libswscale>=5)
 
 add_executable(bebop_driver src/bebop_driver_node.cpp src/bebop.cpp src/video_decoder.cpp src/ardrone3_state_callbacks.cpp)
 include_directories(include)
-ament_target_dependencies(bebop_driver ros2_parrot_arsdk rclcpp std_msgs geometry_msgs nav_msgs camera_info_manager image_transport)
+ament_target_dependencies(bebop_driver ros2_parrot_arsdk rclcpp std_msgs geometry_msgs nav_msgs camera_info_manager image_transport tf2 tf2_ros)
 target_link_libraries(bebop_driver ${ARSDK_LIBS})
 target_link_directories(bebop_driver PUBLIC ${ARSDK_LIB_DIR})
 target_link_libraries(bebop_driver ${AVDEVICE_LIBRARIES} ${AVFORMAT_LIBRARIES} ${AVCODEC_LIBRARIES} ${AVUTIL_LIBRARIES} ${SWSCALE_LIBRARIES})
