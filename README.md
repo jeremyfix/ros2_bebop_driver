@@ -1,4 +1,4 @@
-# ros2_bebop_driver
+# ROS2 bebop driver
 
 This is a ROS2 rewrite derived from the original [ROS1 bebop_autonomy package](https://github.com/AutonomyLab/bebop_autonomy).
 
@@ -7,6 +7,24 @@ If you wish, you could be using [ros1 bridge](https://github.com/ros2/ros1_bridg
 This is clearly alpha release with some basic functionnalities which will hopefully grow from time to time.
 
 This work is based on the [bebop_autonomy](https://github.com/AutonomyLab/bebop_autonomy) work of Mani Monajjemi and the work on [h264_image_transport](https://github.com/clydemcqueen/h264_image_transport) by Clyde McQueen.
+
+## Using it
+
+You need [ros2_parrot_arsdk](https://github.com/jeremyfix/ros2_parrot_arsdk) in your workspace as well as this package, build it and run.
+
+```
+cd ros2_ws
+git clone https://github.com/jeremyfix/ros2_bebop_driver.git src/ros2_bebop_driver
+git clone https://github.com/jeremyfix/ros2_parrot_arsdk.git src/ros2_parrot_arsdk
+colcon build --symlink-install
+```
+
+And then you should be able to run the launch file
+
+```
+source ros2_ws/install/setup.bash
+ros2 launch ros2_bebop_driver bebop_node_launch.xml ip:=YOUR.BEBOP.IP.ADDRESS 
+```
 
 ## Features and roadmap
 
@@ -19,8 +37,10 @@ This work is based on the [bebop_autonomy](https://github.com/AutonomyLab/bebop_
 | H264 video decoding | Yes | |
 | ROS Camera interface | Yes | |
 | Publish bebop states as ROS topics | No | | 
-| TF publisher | No | |
-| Odometry publisher | No | |
+| TF publisher | Yes | |
+| Odometry publisher | Yes | |
+
+The odometry has been not been extensively tested. It is a direct port of the code from [ROS1 bebop_autonomy package](https://github.com/AutonomyLab/bebop_autonomy). However, when I tested it, it seemed to me there was an accumulated error during motion. Not a drift but an offset.
 
 ## Debugging
 
