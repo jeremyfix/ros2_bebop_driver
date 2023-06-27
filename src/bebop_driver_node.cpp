@@ -167,10 +167,26 @@ void BebopDriverNode::publishOdometry(void) {
     }
 
     // Reads the values received from the callback
+    /* std::string speed_frame_id; */
+    /* bebop_driver::time_point speed_time; */
+    /* float beb_vx_enu, beb_vy_enu, beb_vz_enu; */
+    /* auto [speed_frame_id, speed_time, beb_vx_enu, beb_vy_enu, beb_vz_enu] =
+     */
+    /* std::tie(speed_frame_id, speed_time, beb_vx_enu, beb_vy_enu, beb_vz_enu)
+     * = */
+    /* bebop->getArdrone3PilotingStateSpeed(); */
+
     auto [speed_frame_id, speed_time, beb_vx_enu, beb_vy_enu, beb_vz_enu] =
-	bebop->getArdrone3PilotingStateAttitude();
-    auto [attitude_frame_id, attitude_time, beb_roll, beb_pitch, beb_yaw] =
 	bebop->getArdrone3PilotingStateSpeed();
+    RCLCPP_DEBUG(this->get_logger(),
+		 "I received Piloting State Speed : %s, %f, %f, %f",
+		 speed_frame_id.c_str(), beb_vx_enu, beb_vy_enu, beb_vz_enu);
+
+    auto [attitude_frame_id, attitude_time, beb_roll, beb_pitch, beb_yaw] =
+	bebop->getArdrone3PilotingStateAttitude();
+    RCLCPP_DEBUG(this->get_logger(),
+		 "I received Piloting State Attitude : %s, %f, %f, %f",
+		 attitude_frame_id.c_str(), beb_roll, beb_pitch, beb_yaw);
 
     auto time = std::max(speed_time, attitude_time).time_since_epoch();
     auto ros_stamp = rclcpp::Time(
@@ -192,7 +208,8 @@ void BebopDriverNode::publishOdometry(void) {
     tf_odom_to_base.header.frame_id = odom_frame_id;
     tf_odom_to_base.child_frame_id = "base_link";
 
-    auto dt = (this->get_clock()->now() - *last_odom_time).seconds();
+    auto now = this->get_clock()->now();
+    auto dt = (now - *last_odom_time).seconds();
     tf_odom_to_base.transform.translation.x += beb_vx_enu * dt;
     tf_odom_to_base.transform.translation.y += beb_vy_enu * dt;
     tf_odom_to_base.transform.translation.z += beb_vz_enu * dt;
@@ -228,7 +245,7 @@ void BebopDriverNode::publishOdometry(void) {
     /*TODO odom_message.twist.covariance = ; */
 
     publisher_odometry->publish(odom_message);
-    last_odom_time = ros_stamp;
+    last_odom_time = now;
 }
 
 void BebopDriverNode::cmdVelCallback(

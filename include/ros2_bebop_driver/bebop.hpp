@@ -115,9 +115,11 @@ class Bebop {
     bool getFrontCameraFrame(std::vector<uint8_t>& buffer, uint32_t& width,
 			     uint32_t& height);
 
+    /* std::tuple<std::string, time_point, float, float, float> */
     auto getArdrone3PilotingStateAttitude() const {
 	return ardrone3_piloting_state_attitude_changed.get();
     };
+    /* std::tuple<std::string, time_point, float, float, float> */
     auto getArdrone3PilotingStateSpeed() const {
 	return ardrone3_piloting_state_speed_changed.get();
     };

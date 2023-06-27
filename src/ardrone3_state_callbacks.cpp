@@ -34,9 +34,17 @@ extern "C" {
 #include <libARController/ARCONTROLLER_Feature.h>
 }
 
+#include <iostream>
 #include <mutex>
 
 namespace bebop_driver {
+
+Ardrone3PilotingStateAttitudeChanged::Ardrone3PilotingStateAttitudeChanged() {
+    std::get<0>(roll_pitch_yaw) = 0;
+    std::get<1>(roll_pitch_yaw) = 0;
+    std::get<2>(roll_pitch_yaw) = 0;
+}
+
 void Ardrone3PilotingStateAttitudeChanged::set(
     const ARCONTROLLER_DICTIONARY_ARG_t *arguments) {
     std::unique_lock<std::mutex> lock(mutex);
@@ -67,6 +75,12 @@ Ardrone3PilotingStateAttitudeChanged ::get(void) const {
     std::unique_lock<std::mutex> lock(mutex);
 
     return std::tuple_cat(std::make_tuple(frame_id, time), roll_pitch_yaw);
+}
+
+Ardrone3PilotingStateSpeedChanged::Ardrone3PilotingStateSpeedChanged() {
+    std::get<0>(speedx_speedy_speedz) = 0;
+    std::get<1>(speedx_speedy_speedz) = 0;
+    std::get<2>(speedx_speedy_speedz) = 0;
 }
 
 void Ardrone3PilotingStateSpeedChanged::set(

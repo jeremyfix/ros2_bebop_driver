@@ -51,6 +51,7 @@ class Ardrone3PilotingStateAttitudeChanged {
     const std::string frame_id = "base_link";
 
    public:
+    Ardrone3PilotingStateAttitudeChanged();
     void set(const ARCONTROLLER_DICTIONARY_ARG_t* arguments);
     std::tuple<std::string, time_point, float, float, float> get(void) const;
 };
@@ -64,6 +65,7 @@ class Ardrone3PilotingStateSpeedChanged {
     const std::string frame_id = "base_link";
 
    public:
+    Ardrone3PilotingStateSpeedChanged();
     void set(const ARCONTROLLER_DICTIONARY_ARG_t* arguments);
     std::tuple<std::string, time_point, float, float, float> get(void) const;
 };
