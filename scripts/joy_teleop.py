@@ -33,8 +33,7 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Joy
 from geometry_msgs.msg import Twist
-from std_msgs.msg import String, Empty
-import math
+from std_msgs.msg import Empty
 
 BUTTON_A = 0
 BUTTON_B = 1
@@ -73,22 +72,6 @@ class JoyTeleop(Node):
         self.axis_tolerance = 0.75
         self.flying = False
 
-    def publish(self, cmd):
-        cmd_msg = String()
-        cmd_msg.data = cmd
-        self.cmd_pub.publish(cmd_msg)
-
-    def axis_activated(self, msg, first_axis, second_axis, direction):
-        return direction * msg.axes[first_axis] > self.axis_tolerance and (
-            math.fabs(msg.axes[second_axis]) < 1.0 - self.axis_tolerance
-        )
-
-    def axis_high(self, msg, first_axis, second_axis):
-        return self.axis_activated(msg, first_axis, second_axis, +1)
-
-    def axis_low(self, msg, first_axis, second_axis):
-        return self.axis_activated(msg, first_axis, second_axis, -1)
-
     def on_joy(self, msg):
 
         linear_factor = self.get_parameter("linear_factor").value
@@ -100,26 +83,10 @@ class JoyTeleop(Node):
                 self.takeoff_pub.publish(Empty())
                 self.flying = True
 
-            # Direct low level commands
-            if self.axis_high(msg, AXIS_LEFT_HORIZONTAL, AXIS_LEFT_VERTICAL):
-                twist.angular.z = -angular_factor
-            elif self.axis_low(msg, AXIS_LEFT_HORIZONTAL, AXIS_LEFT_VERTICAL):
-                twist.angular.z = angular_factor
-
-            if self.axis_high(msg, AXIS_LEFT_VERTICAL, AXIS_LEFT_HORIZONTAL):
-                twist.linear.x = linear_factor
-            elif self.axis_low(msg, AXIS_LEFT_VERTICAL, AXIS_LEFT_HORIZONTAL):
-                twist.linear.x = -linear_factor
-
-            if self.axis_high(msg, AXIS_RIGHT_HORIZONTAL, AXIS_RIGHT_VERTICAL):
-                twist.linear.y = -linear_factor
-            elif self.axis_low(msg, AXIS_RIGHT_HORIZONTAL, AXIS_RIGHT_VERTICAL):
-                twist.linear.y = linear_factor
-
-            if self.axis_high(msg, AXIS_RIGHT_VERTICAL, AXIS_RIGHT_HORIZONTAL):
-                twist.linear.z = linear_factor
-            elif self.axis_low(msg, AXIS_RIGHT_VERTICAL, AXIS_RIGHT_HORIZONTAL):
-                twist.linear.z = -linear_factor
+            twist.linear.x = linear_factor * msg.axes[AXIS_LEFT_VERTICAL]
+            twist.linear.y = -linear_factor * msg.axes[AXIS_RIGHT_HORIZONTAL]
+            twist.linear.z = linear_factor * msg.axes[AXIS_RIGHT_VERTICAL]
+            twist.angular.z = -angular_factor * msg.axes[AXIS_LEFT_HORIZONTAL]
             self.cmd_pub.publish(twist)
         elif self.flying:
             # Otherwise we land
