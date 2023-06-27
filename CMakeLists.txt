@@ -21,6 +21,8 @@ add_compile_options(-g)
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(ament_cmake_python REQUIRED)
+find_package(rclpy REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
@@ -62,6 +64,12 @@ install(DIRECTORY launch
 install(DIRECTORY
 	config
 	DESTINATION share/${PROJECT_NAME}
+	)
+
+# Install Python executables
+install(PROGRAMS
+	scripts/joy_teleop.py
+	DESTINATION lib/${PROJECT_NAME}
 	)
 
 if(BUILD_TESTING)

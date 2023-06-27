@@ -8,8 +8,10 @@
   <license>BSD 3-clause</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
 
   <build_depend>ros2_parrot_arsdk</build_depend>
+  <depend>rclpy</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
