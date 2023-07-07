@@ -10,11 +10,25 @@ This work is based on the [bebop_autonomy](https://github.com/AutonomyLab/bebop_
 
 ## Using it
 
-You need [ros2_parrot_arsdk](https://github.com/jeremyfix/ros2_parrot_arsdk) in your workspace as well as this package, build it and run.
+First you need to install some dependencies :
+
+```
+sudo apt install ros-foxy-camera-info-manager libavdevice-dev
+```
+
+When building ros2_bebop_driver, we use the google repo tool which is asking a question at initialization. This will prevent colcon building from doing its job (since waiting for an answer to a question in the background). To skip this, you can 
+
+```
+git config --global color.ui auto 
+```
+
+Then, you need [ros2_parrot_arsdk](https://github.com/jeremyfix/ros2_parrot_arsdk) in your workspace as well as this package, build it and run.
 
 ```
 cd ros2_ws
 git clone https://github.com/jeremyfix/ros2_bebop_driver.git src/ros2_bebop_driver
+colcon build --symlink-install
+source install/setup.bash
 git clone https://github.com/jeremyfix/ros2_parrot_arsdk.git src/ros2_parrot_arsdk
 colcon build --symlink-install
 ```
