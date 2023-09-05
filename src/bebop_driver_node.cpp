@@ -250,10 +250,10 @@ void BebopDriverNode::publishOdometry(void) {
 
 void BebopDriverNode::cmdVelCallback(
     const geometry_msgs::msg::Twist::SharedPtr msg) {
-    double roll = msg->linear.y;
+    double roll = -msg->linear.y;
     double pitch = msg->linear.x;
     double gaz_speed = msg->linear.z;
-    double yaw_speed = msg->angular.z;
+    double yaw_speed = -msg->angular.z;
     bebop->move(roll, pitch, gaz_speed, yaw_speed);
 }
 
