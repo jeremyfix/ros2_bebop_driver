@@ -59,6 +59,9 @@ class BebopDriverNode : public rclcpp::Node {
 	subscription_animationFlip;
     rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr
 	subscription_cmdVel;
+    rclcpp::Subscription<geometry_msgs::msg::Vector3>::SharedPtr subscription_moveCamera;
+    rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr
+	subscription_photo;
 
     std::string camera_frame_id;
     std::shared_ptr<camera_info_manager::CameraInfoManager> cinfo_manager;

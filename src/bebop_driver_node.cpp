@@ -113,6 +113,21 @@ BebopDriverNode::BebopDriverNode()
 	"cmd_vel", 1,
 	std::bind(&BebopDriverNode::cmdVelCallback, this,
 		  std::placeholders::_1));
+    
+    // moveCamera
+    subscription_moveCamera = this->create_subscription<geometry_msgs::msg::Vector3>(
+    "move_camera", 1,
+    [this](const geometry_msgs::msg::Vector3::SharedPtr msg) -> void {
+        this->bebop->moveCamera(msg->x, msg->y);
+    });
+
+    // photo
+    subscription_photo = this->create_subscription<std_msgs::msg::Bool>(
+    "photo", 1,
+    [this](const std_msgs::msg::Bool::SharedPtr msg) -> void {
+        this->bebop->photo(msg->data);
+    });
+
 
     // Camera
     publisher_camera =

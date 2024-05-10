@@ -224,6 +224,13 @@ void Bebop::moveCamera(double tilt, double pan) {
 		     "Camera move failed");
 }
 
+void Bebop::photo(bool on) {
+    throwOnInternalError("Record Failure");
+    throwOnCtrlError(deviceController->aRDrone3->sendMediaRecordPicture(
+			 deviceController->aRDrone3, static_cast<int8_t>(on)),
+		     "Camera move failed");
+}
+
 void Bebop::startStreaming(void) {
     if (is_streaming_started) {
 	ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG,
